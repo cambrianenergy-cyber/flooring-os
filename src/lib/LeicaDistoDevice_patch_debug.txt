@@ -1,0 +1,10 @@
+// PATCH FAILURE DEBUG
+// The file c:\Users\finan\flooring-os\src\lib\LeicaDistoDevice.ts has a parse error due to a missing closing brace in the onDistanceNotification method, causing onBearingNotification to be nested and breaking the class structure. The correct structure is:
+// - onDistanceNotification: closes with a '}'
+// - onBearingNotification: is a separate method
+//
+// To fix, close the try/catch and method for onDistanceNotification, then define onBearingNotification as a separate method.
+//
+// Also, update isConnected to return Boolean(...).
+//
+// This debug file is for reference only and should be deleted after the patch is applied.

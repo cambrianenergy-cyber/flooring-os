@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Attachments for jobs
+    match /workspaces/{workspaceId}/jobs/{jobId}/attachments/{fileName} {
+      allow read, write: if request.auth != null && isMember(workspaceId);
+    }
+
+    // Workspace-level documents (PDFs, etc)
+    match /workspaces/{workspaceId}/documents/{docId} {
+      allow read, write: if request.auth != null && isMember(workspaceId);
+    }
+
+    // Room floorplans
+    match /workspaces/{workspaceId}/rooms/{roomId}/floorplans/{fileName} {
+      allow read, write: if request.auth != null && isMember(workspaceId);
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Helper function for RBAC
+    function isMember(workspaceId) {
+      return request.auth != null &&
+        exists(/databases/(default)/documents/workspace_members/$(workspaceId + "_" + request.auth.uid)) &&
+        get(/databases/(default)/documents/workspace_members/$(workspaceId + "_" + request.auth.uid)).data.status == "active";
+    }
+  }
+}

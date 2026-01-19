@@ -1,0 +1,235 @@
+// ...existing code...
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Onboarding collection for each workspace
+    match /workspaces/{workspaceId}/onboarding/{docId} {
+      // Allow any authenticated user to read/write onboarding docs during onboarding
+      allow read, create, update: if request.auth != null;
+      allow delete: if false; // Only allow deletes from server/admin if needed
+    }
+    // Onboarding steps subcollection for each workspace
+    match /workspaces/{workspaceId}/onboarding_steps/{stepId} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if false;
+    }
+    // Members subcollection for each workspace
+    match /workspaces/{workspaceId}/members/{userId} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if false;
+    }
+    // PricingDefaults document for each workspace
+    match /workspaces/{workspaceId}/pricingDefaults {
+      allow read, create, update: if request.auth != null;
+      allow delete: if false;
+    }
+    // Services subcollection for each workspace
+    match /workspaces/{workspaceId}/services/{serviceId} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if false;
+    }
+    // ServiceAreas subcollection for each workspace
+    match /workspaces/{workspaceId}/serviceAreas/{areaId} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if false;
+    // Add other rules as needed for your app
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+
+                        function isSignedIn() { return request.auth != null; }
+                        function uid() { return request.auth.uid; }
+
+                        function memberDoc(workspaceId) {
+                          return get(/databases/$(database)/documents/workspace_members/$(workspaceId + "_" + uid()));
+                        }
+
+                        function isMember(workspaceId) {
+                          return isSignedIn() &&
+                            memberDoc(workspaceId) != null &&
+                            memberDoc(workspaceId).data.status == "active";
+                        }
+
+                        function role(workspaceId) {
+                          return memberDoc(workspaceId) != null ? memberDoc(workspaceId).data.role : null;
+                        }
+
+                        function isAdmin(workspaceId) {
+                          return isMember(workspaceId) && (role(workspaceId) == "owner" || role(workspaceId) == "admin");
+                        }
+
+                        function sameWorkspace() {
+                          return request.resource.data.workspaceId == resource.data.workspaceId;
+                        }
+
+                        // --- All collection and match rules go here ---
+                        // Customers
+                        match /customers/{customerId} {
+                          allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+                          allow create: if isSignedIn() && isMember(request.resource.data.workspaceId)
+                            && request.resource.data.keys().hasOnly([
+                              'name', 'phone', 'email', 'address', 'source', 'tags', 'notes', 'createdAt', 'updatedAt', 'createdBy', 'status'
+                            ]);
+                          allow update: if isSignedIn() && isAdmin(resource.data.workspaceId)
+                            && request.resource.data.keys().hasOnly([
+                              'name', 'phone', 'email', 'address', 'source', 'tags', 'notes', 'createdAt', 'updatedAt', 'createdBy', 'status'
+                            ]);
+                          allow delete: if isSignedIn() && isAdmin(resource.data.workspaceId);
+                        }
+                        // Invites: Only allow admins to read/write invites in their workspace
+    match /invites/{inviteId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId)
+        && request.resource.data.keys().hasOnly([
+          'email', 'role', 'status', 'createdAt', 'expiresAt', 'invitedBy'
+        ]);
+      allow update: if isSignedIn() && isAdmin(resource.data.workspaceId)
+        && request.resource.data.keys().hasOnly([
+          'email', 'role', 'status', 'createdAt', 'expiresAt', 'invitedBy'
+        ]);
+      allow delete: if isSignedIn() && isAdmin(resource.data.workspaceId);
+    }
+    // --- LEADS PIPELINE ---
+    match /leads/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /activities/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- JOBS NESTED: CHANGE ORDERS & SCHEDULE ---
+    match /jobs/{jobId} {
+      // ...existing job rules...
+      match /change_orders/{coId} {
+        allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+        allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+        allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+      }
+      match /schedule/{eventId} {
+        allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+        allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+        allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+      }
+    }
+    // --- CATALOG ---
+    match /catalog/materials/{materialId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /catalog/labor_rates/{rateId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /catalog/line_item_templates/{templateId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- BILLING: INVOICES & PAYMENTS ---
+    match /billing/invoices/{invoiceId} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create, update: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow delete: if false;
+    }
+    match /billing/payments/{paymentId} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create: if false; // server-only (Stripe webhooks)
+      allow update, delete: if false;
+    }
+    // --- CRM ---
+    match /activities/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- Estimating ---
+    match /items/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /versions/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /attachments/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- Job Execution ---
+    match /schedule/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /change_orders/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /photos/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- Billing / Payments ---
+    match /billing/invoices/{id} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create, update: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow delete: if false;
+    }
+    match /billing/payments/{id} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create: if false; // server-only (Stripe webhooks)
+      allow update, delete: if false;
+    }
+    match /billing/usage/{id} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create: if false; // server-only
+      allow update, delete: if false;
+    }
+    // --- Catalog / Pricing / Products ---
+    match /catalog/materials/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /catalog/labor_rates/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    match /catalog/line_item_templates/{id} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+      allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
+    }
+    // --- Workflow Packs / Automation ---
+    match /workflows/{id} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+    }
+    match /automations/{id} {
+      allow read: if isSignedIn() && isAdmin(resource.data.workspaceId);
+      allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+    }
+    // --- Workspace Members: allow signed-in users to read their own membership, but only server/admin can write ---
+    match /workspace_members/{docId} {
+      // Allow read if the user is the member
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      // Only allow create if signed in (max users per plan must be enforced in backend)
+      allow create: if request.auth != null;
+      // Allow write only from server SDK (no auth)
+      allow update, delete: if false;
+    }
+    // --- (continue with the rest of your rules here) ---
+  }
+}

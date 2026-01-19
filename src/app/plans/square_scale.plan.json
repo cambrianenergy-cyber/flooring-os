@@ -1,0 +1,26 @@
+{
+  "planId": "square_scale",
+  "stripePriceId": "square_scale_monthly",
+  "name": "Square Scale",
+  "price": "$799 / month",
+  "userLimit": 7,
+  "target": "Growing companies scaling crews and jobs",
+  "features": [
+    "1 workspace",
+    "Up to 7 users",
+    "AI-assisted estimates (limited)",
+    "Job workflows (expanded)",
+    "Material pricing logic",
+    "CRM pipelines + follow-ups",
+    "Stripe payments & invoicing",
+    "Basic integrations",
+    "Performance reporting"
+  ],
+  "hardLocks": [
+    "Full AI agent automation",
+    "Advanced workflow orchestration",
+    "Multi-location",
+    "White-label",
+    "Agency controls"
+  ]
+}

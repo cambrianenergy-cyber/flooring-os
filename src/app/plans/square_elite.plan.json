@@ -1,0 +1,21 @@
+{
+  "planId": "square_elite",
+  "stripePriceId": "square_elite_monthly",
+  "name": "Square Elite",
+  "price": "$1,499 / month",
+  "userLimit": 25,
+  "target": "High-volume, multi-crew operations",
+  "features": [
+    "1 workspace",
+    "Up to 25 users",
+    "Full AI automation suite",
+    "Advanced workflow orchestration",
+    "Multi-location support",
+    "Executive analytics dashboard",
+    "Priority onboarding + support",
+    "Early-access features"
+  ],
+  "hardLocks": [
+    "Agency / reseller mode (reserved for future expansion)"
+  ]
+}

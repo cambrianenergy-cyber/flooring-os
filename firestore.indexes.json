@@ -9,7 +9,7 @@
         { "fieldPath": "role", "order": "ASCENDING" }
       ]
     },
-    // Square Scale plan is covered by the plans collection index
+    
     {
       "collectionGroup": "plans",
       "queryScope": "COLLECTION",
@@ -217,44 +217,16 @@
         { "fieldPath": "dayKey", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "workspaceId", "order": "ASCENDING" },
+        { "fieldPath": "startDate", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
-}
-
-// Added indexes for agent_events and agent_task
-{
-  "indexes": [
-    // ...existing indexes...
-    {
-      "collectionGroup": "agent_events",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "workspaceId", "order": "ASCENDING" },
-        { "fieldPath": "taskId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "agent_task",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "workspaceId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "createdAT", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "agent_task",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "workspaceId", "order": "ASCENDING" },
-        { "fieldPath": "agentId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    }
-  ]
 }

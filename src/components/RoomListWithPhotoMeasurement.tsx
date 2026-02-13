@@ -2,17 +2,26 @@
 // Room list with Photo Measurement button for each room
 
 "use client";
-import React, { useState } from "react";
-import DistoFloorPlanEditor from "./DistoFloorPlanEditor";
 import { useCadUpload } from "@/lib/useCadUpload";
 import { saveMeasurement } from "@/lib/useFirestoreMeasurement";
+import { useState } from "react";
+import DistoFloorPlanEditor from "./DistoFloorPlanEditor";
 import PhotoMeasurement from "./PhotoMeasurement";
 // import RoleGuard from "./RoleGuard";
-import { logAuditEvent } from "@/lib/useAuditTrail";
 import { auth } from "@/lib/firebase";
+import { logAuditEvent } from "@/lib/useAuditTrail";
 
-export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: string; name: string }[] }) {
-    const { uploadCadFile, uploading: cadUploading, error: cadUploadError, downloadUrl: cadDownloadUrl } = useCadUpload();
+export default function RoomListWithPhotoMeasurement({
+  rooms,
+}: {
+  rooms: { id: string; name: string }[];
+}) {
+  const {
+    uploadCadFile,
+    uploading: cadUploading,
+    error: cadUploadError,
+    downloadUrl: cadDownloadUrl,
+  } = useCadUpload();
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [showMeasurement, setShowMeasurement] = useState(false);
   const [showCadUpload, setShowCadUpload] = useState(false);
@@ -22,8 +31,12 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
   const [cadError, setCadError] = useState<string | null>(null);
   const [cadModalError, setCadModalError] = useState<string | null>(null);
   const [cadFile, setCadFile] = useState<File | null>(null);
-  const [cadStatus, setCadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
-  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [cadStatus, setCadStatus] = useState<
+    "idle" | "uploading" | "success" | "error"
+  >("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">(
+    "idle",
+  );
   const [error, setError] = useState<string | null>(null);
   return (
     <div>
@@ -32,7 +45,7 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
         <select
           className="border rounded px-2 py-1 min-w-[180px]"
           value={selectedRoomId}
-          onChange={e => {
+          onChange={(e) => {
             setSelectedRoomId(e.target.value);
             setShowMeasurement(false);
             setShowCadUpload(false);
@@ -40,8 +53,10 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
           }}
         >
           <option value="">-- Choose Room --</option>
-          {rooms.map(room => (
-            <option key={room.id} value={room.id}>{room.name}</option>
+          {rooms.map((room) => (
+            <option key={room.id} value={room.id}>
+              {room.name}
+            </option>
           ))}
         </select>
         <button
@@ -75,16 +90,28 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
       </div>
       {/* CAD Upload Modal */}
       {showCadUpload && selectedRoomId && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-lg p-6 min-w-[320px] relative">
-            <button className="absolute top-2 right-2 text-gray-500" onClick={() => setShowCadUpload(false)}>&times;</button>
-            <h3 className="text-md font-semibold mb-2">Upload CAD Drawing for Room</h3>
-            <label htmlFor="cad-upload-input" className="block text-sm font-medium mb-1">Upload CAD file</label>
+        <div className="fixed inset-0 bg-overlay bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-background text-slate-900 rounded shadow-lg p-6 min-w-[320px] relative">
+            <button
+              className="absolute top-2 right-2 text-muted"
+              onClick={() => setShowCadUpload(false)}
+            >
+              &times;
+            </button>
+            <h3 className="text-md font-semibold mb-2">
+              Upload CAD Drawing for Room
+            </h3>
+            <label
+              htmlFor="cad-upload-input"
+              className="block text-sm font-medium mb-1"
+            >
+              Upload CAD file
+            </label>
             <input
               id="cad-upload-input"
               type="file"
               accept=".dwg,.dxf,.pdf,.svg,.png,.jpg"
-              onChange={e => setCadFile(e.target.files?.[0] || null)}
+              onChange={(e) => setCadFile(e.target.files?.[0] || null)}
               className="mb-2"
             />
             <button
@@ -116,31 +143,60 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
                     setCadFile(null);
                     setCadSaved(false);
                   }, 1200);
-                } catch (e: any) {
+                } catch (e: unknown) {
                   setCadStatus("error");
-                  setCadModalError(e.message || "Failed to upload");
+                  setCadModalError(
+                    e instanceof Error ? e.message : "Failed to upload",
+                  );
                 }
               }}
             >
               Upload
             </button>
-            {cadUploading && <div className="text-blue-600 text-xs mt-2">Uploading...</div>}
-            {cadDownloadUrl && cadStatus === "success" && (
-              <div className="text-green-600 text-xs mt-2">Uploaded! <a href={cadDownloadUrl} target="_blank" rel="noopener noreferrer" className="underline">View CAD</a></div>
+            {cadUploading && (
+              <div className="text-blue-600 text-xs mt-2">Uploading...</div>
             )}
-            {cadUploadError && <div className="text-red-600 text-xs mt-2">{cadUploadError}</div>}
-            {cadModalError && <div className="text-red-600 text-xs mt-2">{cadModalError}</div>}
-            {cadStatus === "error" && <div className="text-red-600 text-xs mt-2">Failed to upload</div>}
-            {cadSaved && <div className="text-green-600 text-xs mt-2">CAD saved!</div>}
+            {cadDownloadUrl && cadStatus === "success" && (
+              <div className="text-green-600 text-xs mt-2">
+                Uploaded!{" "}
+                <a
+                  href={cadDownloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  View CAD
+                </a>
+              </div>
+            )}
+            {cadUploadError && (
+              <div className="text-red-600 text-xs mt-2">{cadUploadError}</div>
+            )}
+            {cadModalError && (
+              <div className="text-red-600 text-xs mt-2">{cadModalError}</div>
+            )}
+            {cadStatus === "error" && (
+              <div className="text-red-600 text-xs mt-2">Failed to upload</div>
+            )}
+            {cadSaved && (
+              <div className="text-green-600 text-xs mt-2">CAD saved!</div>
+            )}
           </div>
         </div>
       )}
       {/* Create CAD Modal (Disto) */}
       {showCreateCad && selectedRoomId && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-lg p-6 min-w-[420px] relative">
-            <button className="absolute top-2 right-2 text-gray-500" onClick={() => setShowCreateCad(false)}>&times;</button>
-            <h3 className="text-md font-semibold mb-2">Create CAD Drawing with Disto</h3>
+        <div className="fixed inset-0 bg-overlay bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-background text-slate-900 rounded shadow-lg p-6 min-w-[420px] relative">
+            <button
+              className="absolute top-2 right-2 text-muted"
+              onClick={() => setShowCreateCad(false)}
+            >
+              &times;
+            </button>
+            <h3 className="text-md font-semibold mb-2">
+              Create CAD Drawing with Disto
+            </h3>
             <DistoFloorPlanEditor
               roomId={selectedRoomId}
               onSave={async (data) => {
@@ -155,12 +211,16 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
                     data,
                   });
                   setShowCreateCad(false);
-                } catch (e: any) {
-                  setCadError(e.message || "Failed to save CAD");
+                } catch (e: unknown) {
+                  setCadError(
+                    e instanceof Error ? e.message : "Failed to save CAD",
+                  );
                 }
               }}
             />
-            {cadError && <div className="text-red-600 text-xs mt-2">{cadError}</div>}
+            {cadError && (
+              <div className="text-red-600 text-xs mt-2">{cadError}</div>
+            )}
           </div>
         </div>
       )}
@@ -169,7 +229,7 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
         <div className="mb-4">
           <PhotoMeasurement
             roomId={selectedRoomId}
-            onChange={async data => {
+            onChange={async (data) => {
               setStatus("saving");
               setError(null);
               try {
@@ -189,16 +249,26 @@ export default function RoomListWithPhotoMeasurement({ rooms }: { rooms: { id: s
                   setShowMeasurement(false);
                   setMeasurementSaved(false);
                 }, 1200);
-              } catch (e: any) {
-                setError(e.message || "Failed to save");
+              } catch (e: unknown) {
+                setError(e instanceof Error ? e.message : "Failed to save");
                 setStatus("error");
               }
             }}
           />
-          {status === "saving" && <div className="text-blue-600 text-xs mt-1">Saving...</div>}
-          {status === "success" && <div className="text-green-600 text-xs mt-1">Saved!</div>}
-          {status === "error" && <div className="text-red-600 text-xs mt-1">{error}</div>}
-          {measurementSaved && <div className="text-green-600 text-xs mt-1">Measurement saved!</div>}
+          {status === "saving" && (
+            <div className="text-blue-600 text-xs mt-1">Saving...</div>
+          )}
+          {status === "success" && (
+            <div className="text-green-600 text-xs mt-1">Saved!</div>
+          )}
+          {status === "error" && (
+            <div className="text-red-600 text-xs mt-1">{error}</div>
+          )}
+          {measurementSaved && (
+            <div className="text-green-600 text-xs mt-1">
+              Measurement saved!
+            </div>
+          )}
         </div>
       )}
     </div>

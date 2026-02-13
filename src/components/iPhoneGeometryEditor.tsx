@@ -1,6 +1,6 @@
 /**
  * iPhone-Optimized Geometry Interface
- * 
+ *
  * Compact, touch-friendly editing for field work:
  * - Tap-to-place points
  * - Drag to move walls
@@ -11,12 +11,12 @@
 
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { GeometryEngine } from "@/lib/GeometryEngine";
-import { SNAP_PRESETS } from "@/lib/SnapRules";
-import { GeometryValidator } from "@/lib/GeometryValidation";
-import type { GeometryData } from "@/lib/geometrySchema";
 import { FeatureGate } from "@/components/FeatureGate";
+import { GeometryEngine } from "@/lib/GeometryEngine";
+import { GeometryValidator } from "@/lib/GeometryValidation";
+import { SNAP_PRESETS } from "@/lib/SnapRules";
+import type { GeometryData } from "@/lib/geometrySchema";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // ============================================================================
 // Input Modes
@@ -42,16 +42,16 @@ interface GeometryUIState {
 export interface IPhoneGeometryEditorProps {
   roomId: string;
   jobId: string;
-  
+
   // Called when user saves geometry
   onSave?: (geometry: GeometryData) => void;
-  
+
   // Optional initial geometry to load
   initialGeometry?: GeometryData;
-  
+
   // Optional: if you want FeatureGate to depend on plan/workspace
   workspaceId?: string;
-  
+
   // Optional: disable save button while parent is saving
   isSaving?: boolean;
 }
@@ -83,7 +83,7 @@ export function IPhoneGeometryEditor({
       updatedAt: 0,
       updatedBy: "user",
       id: "",
-    }
+    },
   );
 
   // State
@@ -177,13 +177,23 @@ export function IPhoneGeometryEditor({
       const isSelected = point.id === state.selectedPointId;
       ctx.fillStyle = isSelected ? "#FF6B6B" : "#4A90E2";
       ctx.beginPath();
-      ctx.arc(point.x * PIXELS_PER_FOOT, point.y * PIXELS_PER_FOOT, POINT_RADIUS, 0, Math.PI * 2);
+      ctx.arc(
+        point.x * PIXELS_PER_FOOT,
+        point.y * PIXELS_PER_FOOT,
+        POINT_RADIUS,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
 
       // Label
       ctx.fillStyle = "#000000";
       ctx.font = "10px sans-serif";
-      ctx.fillText(`${point.x.toFixed(1)},${point.y.toFixed(1)}`, point.x * PIXELS_PER_FOOT + 8, point.y * PIXELS_PER_FOOT - 8);
+      ctx.fillText(
+        `${point.x.toFixed(1)},${point.y.toFixed(1)}`,
+        point.x * PIXELS_PER_FOOT + 8,
+        point.y * PIXELS_PER_FOOT - 8,
+      );
     }
   }, [state.geometry, state.selectedPointId]);
 
@@ -195,43 +205,53 @@ export function IPhoneGeometryEditor({
   // Input Methods
   // =========================================================================
 
-  const handleTapToPlace = useCallback((x: number, y: number) => {
-    // Validate placement
-    const error = GeometryValidator.validatePointPlacement(x, y, state.geometry);
-    if (error) {
-      setState((prev) => ({ ...prev, validationErrors: [error] }));
-      return;
-    }
-
-    // Add point via engine
-    try {
-
-
-      const point = engine.current.addPoint(x, y);
-      const updated = engine.current.geometry;
-
-      // Auto-create segment if we have 2+ points
-      if (updated.points.length >= 2) {
-        const lastPoint = updated.points[updated.points.length - 2];
-        const segError = GeometryValidator.validateSegmentCreation(lastPoint.id, point.id, updated);
-        if (!segError) {
-          engine.current.addSegment(lastPoint.id, point.id, "wall");
-        }
+  const handleTapToPlace = useCallback(
+    (x: number, y: number) => {
+      // Validate placement
+      const error = GeometryValidator.validatePointPlacement(
+        x,
+        y,
+        state.geometry,
+      );
+      if (error) {
+        setState((prev) => ({ ...prev, validationErrors: [error] }));
+        return;
       }
 
-      setState((prev) => ({
-        ...prev,
-        geometry: engine.current.geometry,
-        validationErrors: [],
-      }));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to add point";
-      setState((prev) => ({
-        ...prev,
-        validationErrors: [{ message }],
-      }));
-    }
-  }, [state.geometry]);
+      // Add point via engine
+      try {
+        const point = engine.current.addPoint(x, y);
+        const updated = engine.current.geometry;
+
+        // Auto-create segment if we have 2+ points
+        if (updated.points.length >= 2) {
+          const lastPoint = updated.points[updated.points.length - 2];
+          const segError = GeometryValidator.validateSegmentCreation(
+            lastPoint.id,
+            point.id,
+            updated,
+          );
+          if (!segError) {
+            engine.current.addSegment(lastPoint.id, point.id, "wall");
+          }
+        }
+
+        setState((prev) => ({
+          ...prev,
+          geometry: engine.current.geometry,
+          validationErrors: [],
+        }));
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to add point";
+        setState((prev) => ({
+          ...prev,
+          validationErrors: [{ message }],
+        }));
+      }
+    },
+    [state.geometry],
+  );
 
   // =========================================================================
   // Canvas Touch Handling
@@ -281,7 +301,8 @@ export function IPhoneGeometryEditor({
         validationErrors: [],
       }));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to close polygon";
+      const message =
+        err instanceof Error ? err.message : "Failed to close polygon";
       setState((prev) => ({
         ...prev,
         validationErrors: [{ message }],
@@ -308,7 +329,9 @@ export function IPhoneGeometryEditor({
   };
 
   // Avoid accessing refs during render: useMemo for computed, state for undo/redo
-  const [computed, setComputed] = useState<import("@/lib/geometrySchema").ComputedGeometry | null>(null);
+  const [computed, setComputed] = useState<
+    import("@/lib/geometrySchema").ComputedGeometry | null
+  >(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -323,13 +346,16 @@ export function IPhoneGeometryEditor({
   // =========================================================================
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-white text-slate-900">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <div className="flex flex-col">
-          <h2 className="text-sm font-semibold text-gray-900">Room: {roomId}</h2>
+          <h2 className="text-sm font-semibold text-gray-900">
+            Room: {roomId}
+          </h2>
           <p className="text-xs text-gray-500">
-            {state.geometry.points.length} points • {computed ? computed.area.toFixed(0) : 0} sqft
+            {state.geometry.points.length} points •{" "}
+            {computed ? computed.area.toFixed(0) : 0} sqft
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -344,7 +370,12 @@ export function IPhoneGeometryEditor({
             </button>
           )}
           <button
-            onClick={() => setState((prev) => ({ ...prev, showSnapPresets: !prev.showSnapPresets }))}
+            onClick={() =>
+              setState((prev) => ({
+                ...prev,
+                showSnapPresets: !prev.showSnapPresets,
+              }))
+            }
             className="rounded px-2 py-1 text-xs font-semibold text-blue-600 border border-blue-300"
           >
             Snap: {snapMode}
@@ -359,7 +390,7 @@ export function IPhoneGeometryEditor({
           width={360}
           height={480}
           onClick={handleCanvasClick}
-          className="w-full border border-gray-200 rounded-lg bg-white cursor-crosshair"
+          className="w-full border border-gray-200 rounded-lg bg-white text-slate-900 cursor-crosshair"
         />
       </div>
 
@@ -368,13 +399,17 @@ export function IPhoneGeometryEditor({
         <button
           onClick={() => setState((prev) => ({ ...prev, inputMode: "tap" }))}
           className={`px-3 py-2 text-xs font-semibold rounded whitespace-nowrap ${
-            state.inputMode === "tap" ? "bg-blue-500 text-white" : "bg-white border border-gray-300 text-gray-700"
+            state.inputMode === "tap"
+              ? "bg-blue-500 text-white"
+              : "bg-white border border-gray-300 text-gray-700"
           }`}
         >
           Tap Place
         </button>
         <button
-          onClick={() => setState((prev) => ({ ...prev, showNumericInput: true }))}
+          onClick={() =>
+            setState((prev) => ({ ...prev, showNumericInput: true }))
+          }
           className="px-3 py-2 text-xs font-semibold rounded whitespace-nowrap bg-white border border-gray-300 text-gray-700"
         >
           Numeric
@@ -394,7 +429,7 @@ export function IPhoneGeometryEditor({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 border-t border-gray-200 bg-white px-4 py-3">
+      <div className="flex gap-2 border-t border-gray-200 bg-white text-slate-900 px-4 py-3">
         <button
           onClick={handleUndo}
           disabled={!canUndo}
@@ -429,11 +464,18 @@ export function IPhoneGeometryEditor({
       )}
 
       {/* Numeric Input Modal */}
-      {state.showNumericInput && <NumericInputModal onSubmit={handleNumericInput} onClose={() => setState((prev) => ({ ...prev, showNumericInput: false }))} />}
+      {state.showNumericInput && (
+        <NumericInputModal
+          onSubmit={handleNumericInput}
+          onClose={() =>
+            setState((prev) => ({ ...prev, showNumericInput: false }))
+          }
+        />
+      )}
 
       {/* Snap Presets */}
       {state.showSnapPresets && (
-        <div className="absolute bottom-20 left-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <div className="absolute bottom-20 left-4 right-4 bg-white text-slate-900 border border-gray-200 rounded-lg shadow-lg p-3">
           {Object.keys(SNAP_PRESETS).map((key) => (
             <button
               key={key}
@@ -442,7 +484,9 @@ export function IPhoneGeometryEditor({
                 setState((prev) => ({ ...prev, showSnapPresets: false }));
               }}
               className={`block w-full text-left px-3 py-2 text-sm rounded ${
-                snapMode === key ? "bg-blue-500 text-white" : "bg-gray-50 text-gray-700"
+                snapMode === key
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-50 text-gray-700"
               }`}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -468,14 +512,14 @@ function NumericInputModal({ onSubmit, onClose }: NumericInputModalProps) {
   const [y, setY] = useState("");
 
   return (
-    <div className="fixed inset-0 flex items-end bg-black bg-opacity-50">
-      <div className="w-full bg-white rounded-t-lg p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900">Enter Coordinates</h3>
+    <div className="fixed inset-0 flex items-end bg-overlay bg-opacity-50">
+      <div className="w-full bg-white text-slate-900 rounded-t-lg p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900">
+          Enter Coordinates
+        </h3>
 
         <div className="space-y-2">
-          <label className="block text-xs text-gray-600">
-            X (feet)
-          </label>
+          <label className="block text-xs text-muted">X (feet)</label>
           <input
             type="number"
             value={x}
@@ -487,9 +531,7 @@ function NumericInputModal({ onSubmit, onClose }: NumericInputModalProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs text-gray-600">
-            Y (feet)
-          </label>
+          <label className="block text-xs text-muted">Y (feet)</label>
           <input
             type="number"
             value={y}

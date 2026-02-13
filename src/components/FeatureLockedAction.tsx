@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { useCanAccessFeature } from "@/lib/useTier";
 import { TierGate, TierUpgradePrompt } from "@/components/TierGate";
 import type { FeatureAccessMatrix } from "@/lib/pricingTiers";
+import { useCanAccessFeature } from "@/lib/useTier";
+import React, { useState } from "react";
 
 interface FeatureLockedActionProps {
   feature: keyof FeatureAccessMatrix;
@@ -19,7 +19,6 @@ export function FeatureLockedAction({
   featureDescription,
   children,
   onAction,
-
 }: FeatureLockedActionProps) {
   const canAccess = useCanAccessFeature(feature);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -50,8 +49,8 @@ export function FeatureLockedAction({
         </button>
       )}
       {showUpgradeModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+        <div className="fixed inset-0 flex items-center justify-center bg-overlay bg-opacity-50 z-50">
+          <div className="bg-background text-slate-900 rounded-lg p-8 max-w-md w-full">
             <h4 className="font-bold text-lg mb-2">Upgrade Required</h4>
             <p className="mb-4">This feature requires a higher plan.</p>
             <TierUpgradePrompt feature={feature} />

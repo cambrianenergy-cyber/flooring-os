@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
 import { useWorkflow } from "@/lib/workflow";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import OnboardingLayout from "../OnboardingLayout";
 import OnboardingProgress from "../OnboardingProgress";
-import { useRouter } from "next/navigation";
 
 export default function SecurityComplianceStep() {
   const [lockMode, setLockMode] = useState(false);
@@ -32,16 +32,18 @@ export default function SecurityComplianceStep() {
 
   return (
     <OnboardingLayout step={8}>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 mt-10">
-          <h1 className="text-3xl font-bold mb-4 text-center">Security & Compliance</h1>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-slate-100">
+        <div className="max-w-lg w-full bg-background text-slate-900 rounded-xl shadow-lg p-8 mt-10">
+          <h1 className="text-3xl font-bold mb-4 text-center">
+            Security & Compliance
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 className="checkbox"
                 checked={lockMode}
-                onChange={e => setLockMode(e.target.checked)}
+                onChange={(e) => setLockMode(e.target.checked)}
               />
               <label className="text-sm font-medium">Enable Lock Mode</label>
             </div>
@@ -50,7 +52,7 @@ export default function SecurityComplianceStep() {
                 type="checkbox"
                 className="checkbox"
                 checked={twoFA}
-                onChange={e => setTwoFA(e.target.checked)}
+                onChange={(e) => setTwoFA(e.target.checked)}
               />
               <label className="text-sm font-medium">Require 2FA</label>
             </div>
@@ -59,7 +61,7 @@ export default function SecurityComplianceStep() {
                 type="checkbox"
                 className="checkbox"
                 checked={auditLogs}
-                onChange={e => setAuditLogs(e.target.checked)}
+                onChange={(e) => setAuditLogs(e.target.checked)}
               />
               <label className="text-sm font-medium">Enable Audit Logs</label>
             </div>
@@ -68,9 +70,11 @@ export default function SecurityComplianceStep() {
                 type="checkbox"
                 className="checkbox"
                 checked={permissions}
-                onChange={e => setPermissions(e.target.checked)}
+                onChange={(e) => setPermissions(e.target.checked)}
               />
-              <label className="text-sm font-medium">Advanced Permissions</label>
+              <label className="text-sm font-medium">
+                Advanced Permissions
+              </label>
             </div>
             {error && <div className="text-red-500 text-sm">{error}</div>}
             <button
@@ -81,8 +85,10 @@ export default function SecurityComplianceStep() {
               {loading ? "Saving..." : "Continue"}
             </button>
           </form>
-          <OnboardingProgress currentStep={9} totalSteps={9} />
-          <span className="text-xs text-muted block text-center mt-2">Step 9 of 9</span>
+          <OnboardingProgress currentStep={9} />
+          <span className="text-xs text-gray-600 block text-center mt-2">
+            Step 9 of 9
+          </span>
         </div>
       </div>
     </OnboardingLayout>

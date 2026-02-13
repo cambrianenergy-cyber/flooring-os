@@ -16,23 +16,31 @@ const STEPS = [
 ];
 
 export function Stepper({ currentKey }: { currentKey: string }) {
-  const idx = Math.max(0, STEPS.findIndex((s) => s.key === currentKey));
+  const idx = Math.max(
+    0,
+    STEPS.findIndex((s) => s.key === currentKey),
+  );
   const pct = Math.round(((idx + 1) / STEPS.length) * 100);
 
   return (
-    <div className="rounded-2xl border bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border bg-background text-slate-900 p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm text-slate-500">Onboarding</div>
           <div className="text-xl font-semibold">
             Step {idx + 1} of {STEPS.length}: {STEPS[idx]?.label}
           </div>
-          <div className="mt-1 text-sm text-slate-600">You can change everything later.</div>
+          <div className="mt-1 text-sm text-slate-600">
+            You can change everything later.
+          </div>
         </div>
         <div className="min-w-[160px] text-right">
           <div className="text-xs text-slate-500">{pct}% complete</div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-slate-900" style={{ width: `${pct}%` }} />
+            <div
+              className="h-full rounded-full bg-slate-900"
+              style={{ width: `${pct}%` }}
+            />
           </div>
         </div>
       </div>
@@ -46,7 +54,9 @@ export function Stepper({ currentKey }: { currentKey: string }) {
               href={s.href}
               className={[
                 "rounded-full border px-3 py-1 text-xs transition",
-                active ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                active
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-200 bg-background text-slate-700 hover:bg-slate-50 text-slate-900",
               ].join(" ")}
             >
               {s.label}

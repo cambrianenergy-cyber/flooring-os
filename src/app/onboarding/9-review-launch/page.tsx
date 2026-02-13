@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
 import { useWorkflow } from "@/lib/workflow";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import OnboardingLayout from "../OnboardingLayout";
 import OnboardingProgress from "../OnboardingProgress";
-import { useRouter } from "next/navigation";
 
 export default function ReviewLaunchStep() {
   const [error, setError] = useState("");
@@ -18,7 +18,7 @@ export default function ReviewLaunchStep() {
     setError("");
     try {
       // TODO: Integrate with Stripe or payment provider
-      await new Promise(res => setTimeout(res, 1500)); // Simulate payment
+      await new Promise((res) => setTimeout(res, 1500)); // Simulate payment
       setPaymentComplete(true);
       setStep("KPI");
       completeStep("KPI");
@@ -35,9 +35,11 @@ export default function ReviewLaunchStep() {
 
   return (
     <OnboardingLayout step={9}>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 mt-10">
-          <h1 className="text-3xl font-bold mb-4 text-center">Review & Launch</h1>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-slate-100">
+        <div className="max-w-lg w-full bg-background text-slate-900 rounded-xl shadow-lg p-8 mt-10">
+          <h1 className="text-3xl font-bold mb-4 text-center">
+            Review & Launch
+          </h1>
           <ul className="list-disc pl-6 mb-4 text-sm">
             <li>Review your onboarding details</li>
             <li>Test run your workflow</li>
@@ -61,8 +63,10 @@ export default function ReviewLaunchStep() {
             </button>
           )}
           {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-          <OnboardingProgress currentStep={10} totalSteps={10} />
-          <span className="text-xs text-muted block text-center mt-2">Step 10 of 10</span>
+          <OnboardingProgress currentStep={10} />
+          <span className="text-xs text-gray-600 block text-center mt-2">
+            Step 10 of 10
+          </span>
         </div>
       </div>
     </OnboardingLayout>

@@ -1,41 +1,33 @@
-
-
 "use client";
-
-import React, { useState } from "react";
-import RoomEstimateDemo from "@/components/RoomEstimateDemo";
-import DashboardAgents from "./DashboardAgents";
-import { CoreWorkflowPack } from "../../components/CoreWorkflowPack";
-import { SalesAcceleratorPack } from "../../components/SalesAcceleratorPack";
-import { EstimationPowerPack } from "../../components/EstimationPowerPack";
-import { OperationsAutomationPack } from "../../components/OperationsAutomationPack";
-import { FullWorkflowSuitePack } from "../../components/FullWorkflowSuitePack";
-import { GrowthCommandPackPlaceholder, CompetitiveIntelligencePackPlaceholder } from "../../components/PremiumPackPlaceholders";
+import { useWorkspace } from "@/lib/workspaceContext";
 import Link from "next/link";
-
-import { Leaderboard } from "@/app/components/Leaderboard";
-import { FeatureUsageChart } from "@/app/components/FeatureUsageChart";
-import { DailyUsageChart } from "@/app/components/DailyUsageChart";
-import { OptimizationTips } from "@/app/components/OptimizationTips";
-import { OwnerValueTiles } from "@/app/components/OwnerValueTiles";
-import { useWorkspacePlanStatus } from "@/app/components/useWorkspacePlanStatus";
-import { PlanStatusBanner } from "@/app/components/PlanStatusBanner";
-import { FounderPlanStatusBanner } from "@/app/components/FounderPlanStatusBanner";
-import { useUser } from "@/app/components/useUser";
-
-import { FounderForceResetPassword } from "@/app/components/FounderForceResetPassword";
-import { useIsFounder } from "@/app/components/useIsFounder";
+import { useState } from "react";
+import { CoreWorkflowPack } from "../../components/CoreWorkflowPack";
+import { DailyUsageChart } from "../../components/DailyUsageChart";
+import { EstimationPowerPack } from "../../components/EstimationPowerPack";
+import { FeatureUsageChart } from "../../components/FeatureUsageChart";
+import { FounderForceResetPassword } from "../../components/FounderForceResetPassword";
+import { FounderPlanStatusBanner } from "../../components/FounderPlanStatusBanner";
+import { FullWorkflowSuitePack } from "../../components/FullWorkflowSuitePack";
+import { Leaderboard } from "../../components/Leaderboard";
+import { OperationsAutomationPack } from "../../components/OperationsAutomationPack";
+import { OptimizationTips } from "../../components/OptimizationTips";
+import { OwnerValueTiles } from "../../components/OwnerValueTiles";
+import { PlanStatusBanner } from "../../components/PlanStatusBanner";
+import {
+    CompetitiveIntelligencePackPlaceholder,
+    GrowthCommandPackPlaceholder,
+} from "../../components/PremiumPackPlaceholders";
+import { SalesAcceleratorPack } from "../../components/SalesAcceleratorPack";
+import { useWorkspacePlanStatus } from "../../components/useWorkspacePlanStatus";
 
 export default function DashboardPage() {
-  // TODO: Replace with real workspaceId and userRole from context/auth
-  const workspaceId = "demo-workspace";
+  const { workspace } = useWorkspace();
+  const workspaceId = workspace?.id;
   const userRole = "owner";
   const [suiteAgentResult, setSuiteAgentResult] = useState<string | null>(null);
   const [suiteAgentLoading, setSuiteAgentLoading] = useState(false);
   const [suiteAgentError, setSuiteAgentError] = useState<string | null>(null);
-
-
-
   async function handleSuiteAgentTrigger(agentId: string) {
     setSuiteAgentResult(null);
     setSuiteAgentError(null);
@@ -70,40 +62,44 @@ export default function DashboardPage() {
   const [salesAgentResult, setSalesAgentResult] = useState<string | null>(null);
   const [salesAgentLoading, setSalesAgentLoading] = useState(false);
   const [salesAgentError, setSalesAgentError] = useState<string | null>(null);
-  const [estimationAgentResult, setEstimationAgentResult] = useState<string | null>(null);
+  const [estimationAgentResult, setEstimationAgentResult] = useState<
+    string | null
+  >(null);
   const [estimationAgentLoading, setEstimationAgentLoading] = useState(false);
-  const [estimationAgentError, setEstimationAgentError] = useState<string | null>(null);
+  const [estimationAgentError, setEstimationAgentError] = useState<
+    string | null
+  >(null);
   const [opsAgentResult, setOpsAgentResult] = useState<string | null>(null);
   const [opsAgentLoading, setOpsAgentLoading] = useState(false);
   const [opsAgentError, setOpsAgentError] = useState<string | null>(null);
-    async function handleOpsAgentTrigger(agentId: string) {
-      setOpsAgentResult(null);
-      setOpsAgentError(null);
-      setOpsAgentLoading(true);
-      try {
-        const res = await fetch("/api/ai/orchestrator", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            agentId,
-            userRole,
-            workspaceId,
-            screenContext: "dashboard_operations_automation_pack",
-          }),
-        });
-        const data = await res.json();
-        if (res.ok && data.text) {
-          setOpsAgentResult(data.text);
-        } else if (data.error) {
-          setOpsAgentError(data.error);
-        } else {
-          setOpsAgentError("Unknown error from agent.");
-        }
-      } catch {
-        setOpsAgentError("Failed to contact orchestrator API.");
+  async function handleOpsAgentTrigger(agentId: string) {
+    setOpsAgentResult(null);
+    setOpsAgentError(null);
+    setOpsAgentLoading(true);
+    try {
+      const res = await fetch("/api/ai/orchestrator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          userRole,
+          workspaceId,
+          screenContext: "dashboard_operations_automation_pack",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.text) {
+        setOpsAgentResult(data.text);
+      } else if (data.error) {
+        setOpsAgentError(data.error);
+      } else {
+        setOpsAgentError("Unknown error from agent.");
       }
-      setOpsAgentLoading(false);
+    } catch {
+      setOpsAgentError("Failed to contact orchestrator API.");
     }
+    setOpsAgentLoading(false);
+  }
   async function handleEstimationAgentTrigger(agentId: string) {
     setEstimationAgentResult(null);
     setEstimationAgentError(null);
@@ -132,9 +128,6 @@ export default function DashboardPage() {
     }
     setEstimationAgentLoading(false);
   }
-
-
-
   async function handleCoreAgentTrigger(agentId: string) {
     setAgentResult(null);
     setAgentError(null);
@@ -163,7 +156,6 @@ export default function DashboardPage() {
     }
     setAgentLoading(false);
   }
-
   async function handleSalesAgentTrigger(agentId: string) {
     setSalesAgentResult(null);
     setSalesAgentError(null);
@@ -192,20 +184,12 @@ export default function DashboardPage() {
     }
     setSalesAgentLoading(false);
   }
-
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
   const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-31`;
-  const plan = useWorkspacePlanStatus(workspaceId);
-  const user = useUser();
-  function getUserEmail(u: unknown): string | undefined {
-    if (u && typeof u === 'object' && 'email' in u && typeof (u as { email?: unknown }).email === 'string') {
-      return (u as { email: string }).email;
-    }
-    return undefined;
-  }
-  const email = getUserEmail(user);
-  const isFounder = useIsFounder(email);
+  const plan = useWorkspacePlanStatus(workspaceId || "");
+  // TODO: Add user context if needed for founder/admin logic
+  const isFounder = false;
   return (
     <div>
       <div className="p-6 space-y-6">
@@ -214,64 +198,97 @@ export default function DashboardPage() {
             <FounderPlanStatusBanner />
             <FounderForceResetPassword />
           </>
-        ) : plan && (
-          <PlanStatusBanner planKey={plan.key} status={plan.status} currentPeriodEnd={plan.currentPeriodEnd} />
+        ) : (
+          plan && (
+            <PlanStatusBanner
+              planKey={plan.key}
+              status={plan.status}
+              currentPeriodEnd={plan.currentPeriodEnd}
+            />
+          )
         )}
-        <OwnerValueTiles workspaceId={workspaceId} />
+        <OwnerValueTiles workspaceId={workspaceId ?? ""} />
         <FullWorkflowSuitePack onTrigger={handleSuiteAgentTrigger} />
         {suiteAgentLoading && (
-          <div className="my-4 p-3 bg-yellow-100 text-yellow-700 rounded">Running suite agent…</div>
+          <div className="my-4 p-3 bg-yellow-100 text-yellow-700 rounded">
+            Running suite agent…
+          </div>
         )}
         {suiteAgentResult && (
-          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">{suiteAgentResult}</div>
+          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">
+            {suiteAgentResult}
+          </div>
         )}
         {suiteAgentError && (
-          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">{suiteAgentError}</div>
+          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">
+            {suiteAgentError}
+          </div>
         )}
         <CoreWorkflowPack onTrigger={handleCoreAgentTrigger} />
         {agentLoading && (
-          <div className="my-4 p-3 bg-blue-100 text-blue-700 rounded">Running agent…</div>
+          <div className="my-4 p-3 bg-blue-100 text-blue-700 rounded">
+            Running agent…
+          </div>
         )}
         {agentResult && (
-          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">{agentResult}</div>
+          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">
+            {agentResult}
+          </div>
         )}
         {agentError && (
-          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">{agentError}</div>
+          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">
+            {agentError}
+          </div>
         )}
-
         <SalesAcceleratorPack onTrigger={handleSalesAgentTrigger} />
         {salesAgentLoading && (
-          <div className="my-4 p-3 bg-pink-100 text-pink-700 rounded">Running sales agent…</div>
+          <div className="my-4 p-3 bg-pink-100 text-pink-700 rounded">
+            Running sales agent…
+          </div>
         )}
         {salesAgentResult && (
-          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">{salesAgentResult}</div>
+          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">
+            {salesAgentResult}
+          </div>
         )}
         {salesAgentError && (
-          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">{salesAgentError}</div>
+          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">
+            {salesAgentError}
+          </div>
         )}
-
         <EstimationPowerPack onTrigger={handleEstimationAgentTrigger} />
         {estimationAgentLoading && (
-          <div className="my-4 p-3 bg-purple-100 text-purple-700 rounded">Running estimation agent…</div>
+          <div className="my-4 p-3 bg-purple-100 text-purple-700 rounded">
+            Running estimation agent…
+          </div>
         )}
         {estimationAgentResult && (
-          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">{estimationAgentResult}</div>
+          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">
+            {estimationAgentResult}
+          </div>
         )}
         {estimationAgentError && (
-          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">{estimationAgentError}</div>
+          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">
+            {estimationAgentError}
+          </div>
         )}
-
         <OperationsAutomationPack onTrigger={handleOpsAgentTrigger} />
         <GrowthCommandPackPlaceholder />
         <CompetitiveIntelligencePackPlaceholder />
         {opsAgentLoading && (
-          <div className="my-4 p-3 bg-orange-100 text-orange-700 rounded">Running operations agent…</div>
+          <div className="my-4 p-3 bg-orange-100 text-orange-700 rounded">
+            Running operations agent…
+          </div>
         )}
         {opsAgentResult && (
-          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">{opsAgentResult}</div>
+          <div className="my-4 p-3 bg-green-100 text-green-800 rounded whitespace-pre-line">
+            {opsAgentResult}
+          </div>
         )}
         {opsAgentError && (
-          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">{opsAgentError}</div>
+          <div className="my-4 p-3 bg-red-100 text-red-800 rounded">
+            {opsAgentError}
+          </div>
         )}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -284,13 +301,15 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-
         <div className="grid gap-4 md:grid-cols-2">
           <div className="border rounded p-4">
             <h2 className="font-medium mb-2">Quick Actions</h2>
             <ul className="list-disc pl-5 space-y-1 text-sm">
               <li>
-                <Link className="underline cursor-pointer" href="/app/workspaces">
+                <Link
+                  className="underline cursor-pointer"
+                  href="/app/workspaces"
+                >
                   Workspaces
                 </Link>
               </li>
@@ -306,7 +325,6 @@ export default function DashboardPage() {
               </li>
             </ul>
           </div>
-
           <div className="border rounded p-4">
             <h2 className="font-medium mb-2">Status</h2>
             <div>OK</div>
@@ -315,13 +333,15 @@ export default function DashboardPage() {
       </div>
       {/* New dashboard widgets */}
       <div className="p-6 grid gap-4 md:grid-cols-2">
-        <Leaderboard workspaceId={workspaceId} />
-        <FeatureUsageChart workspaceId={workspaceId} />
-        <DailyUsageChart workspaceId={workspaceId} monthStart={monthStart} monthEnd={monthEnd} />
+        <Leaderboard workspaceId={workspaceId ?? ""} />
+        <FeatureUsageChart workspaceId={workspaceId ?? ""} />
+        <DailyUsageChart
+          workspaceId={workspaceId ?? ""}
+          monthStart={monthStart}
+          monthEnd={monthEnd}
+        />
         <OptimizationTips />
       </div>
-      <DashboardAgents />
-      <RoomEstimateDemo />
     </div>
   );
 }

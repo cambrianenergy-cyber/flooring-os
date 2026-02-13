@@ -22,6 +22,13 @@ export function useFirestoreWorkflow(workspaceId: string) {
       return;
     }
     const ref: DocumentReference = doc(db, "workspaces", workspaceId, "workflowStates", user.uid);
+    // Debug log for Firestore path, project, and user info
+    console.log("[debug] Setting up WORKFLOW_STATES_LISTENER", {
+      workspaceId,
+      userId: user.uid,
+      firestorePath: ref.path,
+      projectId: db.app.options.projectId
+    });
     const unsub = debugOnSnapshot(ref, "WORKFLOW_STATES_LISTENER", (snap: any) => {
       if (snap.exists()) {
         setState(snap.data() as WorkflowState);

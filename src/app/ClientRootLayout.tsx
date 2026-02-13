@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { TierProvider } from "@/lib/useTier";
 import { FeaturesProvider } from "@/lib/deviceDetectionProvider";
-import { loadUserSubscription } from "@/lib/subscriptionManager";
+import { auth, db } from "@/lib/firebase";
 import type { UserSubscription } from "@/lib/pricingTiers";
+import { loadUserSubscription } from "@/lib/subscriptionManager";
+import { TierProvider } from "@/lib/useTier";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface ClientRootLayoutProps {
   children: React.ReactNode;
@@ -15,30 +17,86 @@ interface ClientRootLayoutProps {
 interface AuthUser {
   uid: string;
   email: string | null;
+  workspaceId?: string;
 }
 
 export function ClientRootLayout({ children }: ClientRootLayoutProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [subscription, setSubscription] = useState<UserSubscription | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Set up auth state listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-        });
-      } else {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
         setUser(null);
+        router.push("/login");
+        return;
       }
+      // Unified workspace logic for all users
+      let workspaceId: string | undefined = undefined;
+      const wsRef = doc(db, "workspaces", firebaseUser.uid);
+      let wsSnap = await getDoc(wsRef);
+      if (!wsSnap.exists()) {
+        // Create a workspace for this user if it doesn't exist
+        await setDoc(wsRef, {
+          userId: firebaseUser.uid,
+          email: firebaseUser.email,
+          createdAt: Date.now(),
+          plan: { key: "essentials" },
+          status: "active",
+          members: [firebaseUser.email],
+        });
+        wsSnap = await getDoc(wsRef);
+      }
+      workspaceId = firebaseUser.uid;
+      if (typeof window !== "undefined") {
+        const wsData = wsSnap.data() || {};
+        const wsObj = {
+          id: workspaceId,
+          name: wsData.name || "My Workspace",
+          plan: wsData.plan || { key: "essentials" },
+          ...wsData,
+        };
+        localStorage.setItem("workspace", JSON.stringify(wsObj));
+      }
+      // Onboarding check: redirect to /onboarding if not complete
+      try {
+        const onboardingRef = doc(
+          db,
+          "workspaces",
+          firebaseUser.uid,
+          "onboarding",
+          "state",
+        );
+        const onboardingSnap = await getDoc(onboardingRef);
+        let onboardingComplete = false;
+        if (onboardingSnap.exists()) {
+          const onboardingData = onboardingSnap.data();
+          onboardingComplete =
+            onboardingData.status === "complete" ||
+            Boolean(onboardingData.complete);
+        }
+        if (!onboardingComplete) {
+          router.push("/onboarding");
+          return;
+        }
+      } catch (err) {
+        // If onboarding check fails, send to onboarding as fallback
+        router.push("/onboarding");
+        return;
+      }
+      setUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        workspaceId,
+      });
     });
-
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   // Load subscription when user changes
   useEffect(() => {
@@ -47,20 +105,17 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
         setLoading(false);
         return;
       }
-
       try {
         const userSubscription = await loadUserSubscription(
           user.uid,
-          user.email || ""
+          user.email || "",
         );
-
         if (userSubscription) {
           setSubscription(userSubscription);
         } else {
-          // Fallback to default Core tier if no subscription found
           setSubscription({
             userId: user.uid,
-            workspaceId: "unknown",
+            workspaceId: user.workspaceId || "unknown",
             tier: "essentials",
             billingCycle: "monthly",
             monthlyAmount: 299,
@@ -77,10 +132,9 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
         }
       } catch (error) {
         console.error("Error loading subscription:", error);
-        // Fallback to default Essentials tier on error
         setSubscription({
           userId: user.uid,
-          workspaceId: "unknown",
+          workspaceId: user.workspaceId || "unknown",
           tier: "essentials",
           billingCycle: "monthly",
           monthlyAmount: 299,
@@ -98,7 +152,6 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
         setLoading(false);
       }
     }
-
     loadSubscription();
   }, [user]);
 
@@ -112,6 +165,11 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
         </div>
       </div>
     );
+  }
+
+  // If not authenticated, don't render children
+  if (!user) {
+    return null;
   }
 
   return (

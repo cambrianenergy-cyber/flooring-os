@@ -1,41 +1,53 @@
 import { adminDb } from "@/lib/firebaseAdmin";
-import { Timestamp } from "firebase-admin/firestore";
 
-export async function acquireRunLock(runId: string, runnerId: string, lockMs = 25_000) {
+export async function acquireRunLock(
+  runId: string,
+  runnerId: string,
+  ttlMs = 25000,
+) {
   const runRef = adminDb().collection("workflow_runs").doc(runId);
+  const now = Date.now();
+  const expiresAt = now + ttlMs;
 
-  return await adminDb().runTransaction(async (tx) => {
-    const snap = await tx.get(runRef);
-    if (!snap.exists) return { ok: false as const, reason: "not_found" as const };
+  try {
+    const res = await adminDb().runTransaction(async (txn) => {
+      const doc = await txn.get(runRef);
+      if (!doc.exists) return { ok: false, reason: "not_found" };
 
-    const run = snap.data() as any;
+      const data = doc.data();
+      if (
+        data &&
+        data.lock &&
+        data.lock.expiresAt > now &&
+        data.lock.by !== runnerId
+      ) {
+        return { ok: false, reason: "locked" };
+      }
 
-    const now = Timestamp.now();
-    const expiresAt = Timestamp.fromMillis(Date.now() + lockMs);
-
-    const currentLock = run.lock;
-    if (currentLock?.expiresAt?.toMillis?.() > Date.now()) {
-      return { ok: false as const, reason: "locked" as const };
-    }
-
-    tx.update(runRef, {
-      lock: { by: runnerId, at: now, expiresAt },
-      updatedAt: now,
+      txn.update(runRef, {
+        lock: { by: runnerId, at: now, expiresAt },
+      });
+      return { ok: true };
     });
-
-    return { ok: true as const };
-  });
+    return res;
+  } catch (_) {
+    return { ok: false, reason: "error" };
+  }
 }
 
 export async function releaseRunLock(runId: string, runnerId: string) {
   const runRef = adminDb().collection("workflow_runs").doc(runId);
-  await adminDb().runTransaction(async (tx) => {
-    const snap = await tx.get(runRef);
-    if (!snap.exists) return;
-
-    const run = snap.data() as any;
-    if (run.lock?.by !== runnerId) return;
-
-    tx.update(runRef, { lock: null, updatedAt: Timestamp.now() });
-  });
+  try {
+    await adminDb().runTransaction(async (txn) => {
+      const doc = await txn.get(runRef);
+      if (!doc.exists) return;
+      const data = doc.data();
+      if (data && data.lock && data.lock.by === runnerId) {
+        txn.update(runRef, { lock: null });
+      }
+    });
+    return { ok: true };
+  } catch (_) {
+    return { ok: false };
+  }
 }

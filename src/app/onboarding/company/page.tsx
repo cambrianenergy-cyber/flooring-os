@@ -51,15 +51,15 @@ export default function CompanyOnboardingPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-page-bg">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold mb-4">Company Information</h1>
+      <form onSubmit={handleSubmit} className="bg-page-surface/80 p-8 rounded-xl shadow w-full max-w-md space-y-4">
+        <h1 className="text-2xl font-bold mb-4 text-slate-900">Company Information</h1>
         <div>
-          <label className="block mb-1">Company Name</label>
-          <input className="w-full border rounded p-2" value={companyName} onChange={e => setCompanyName(e.target.value)} required />
+          <label className="block mb-1 text-slate-700">Company Name</label>
+          <input className="w-full border rounded p-2 bg-page-surface text-slate-900" value={companyName} onChange={e => setCompanyName(e.target.value)} required />
         </div>
         <div>
-          <label className="block mb-1">Industry</label>
-          <input className="w-full border rounded p-2" value={industry} onChange={e => setIndustry(e.target.value)} required />
+          <label className="block mb-1 text-slate-700">Industry</label>
+          <input className="w-full border rounded p-2 bg-page-surface text-slate-900" value={industry} onChange={e => setIndustry(e.target.value)} required />
         </div>
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <div className="flex gap-4 mt-6">

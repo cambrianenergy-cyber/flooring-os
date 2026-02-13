@@ -1,17 +1,24 @@
-import React from "react";
+import { useRouter } from "next/navigation";
+import { ONBOARDING_STEPS } from "./onboardingSteps";
 
 interface OnboardingProgressProps {
   currentStep: number;
-  totalSteps: number;
-  stepLabels?: string[];
 }
 
-export default function OnboardingProgress({ currentStep, totalSteps, stepLabels }: OnboardingProgressProps) {
+export default function OnboardingProgress({
+  currentStep,
+}: OnboardingProgressProps) {
+  const router = useRouter();
+  const totalSteps = ONBOARDING_STEPS.length;
   return (
     <div className="w-full mb-6">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-foreground">Onboarding Progress</span>
-        <span className="text-xs text-muted">Step {currentStep} of {totalSteps}</span>
+        <span className="text-sm font-medium text-foreground">
+          Onboarding Progress
+        </span>
+        <span className="text-xs text-muted">
+          Step {currentStep} of {totalSteps}
+        </span>
       </div>
       <div className="w-full bg-muted rounded-full h-2">
         <div
@@ -19,13 +26,24 @@ export default function OnboardingProgress({ currentStep, totalSteps, stepLabels
           data-width={`${(currentStep / totalSteps) * 100}%`}
         />
       </div>
-      {stepLabels && (
-        <div className="flex justify-between mt-2 text-xs text-muted">
-          {stepLabels.map((label, idx) => (
-            <span key={label} className={idx + 1 === currentStep ? "font-bold text-accent" : ""}>{label}</span>
-          ))}
-        </div>
-      )}
+      <div className="flex justify-between mt-2 text-xs text-muted">
+        {ONBOARDING_STEPS.map((step, idx) => (
+          <button
+            key={step.label}
+            className={
+              (idx + 1 === currentStep
+                ? "font-bold text-accent underline"
+                : "hover:underline") +
+              " bg-transparent border-none p-0 m-0 cursor-pointer text-inherit"
+            }
+            style={{ background: "none", border: "none" }}
+            onClick={() => router.push(step.route)}
+            type="button"
+          >
+            {step.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

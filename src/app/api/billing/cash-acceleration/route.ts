@@ -1,11 +1,15 @@
-import { NextResponse } from "next/server";
+import { requireRole, requireWorkspaceMember } from "@/lib/authz";
 import { getOrCreateStripeCustomer, stripe } from "@/lib/billing";
-import { requireWorkspaceMember, requireRole } from "@/lib/authz";
+import { NextResponse } from "next/server";
 
-function getUid(req: Request) {
-  const uid = req.headers.get("x-debug-uid"); // replace with real Firebase auth verification
-  if (!uid) throw new Error("UNAUTHENTICATED");
-  return uid;
+import { getAuth } from "firebase-admin/auth";
+async function getUid(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    throw new Error("UNAUTHENTICATED");
+  const token = authHeader.split("Bearer ")[1];
+  const decoded = await getAuth().verifyIdToken(token);
+  return decoded.uid;
 }
 
 /**
@@ -15,7 +19,7 @@ function getUid(req: Request) {
  */
 export async function POST(req: Request) {
   try {
-    const uid = getUid(req);
+    const uid = await getUid(req);
     const { workspaceId, price } = await req.json();
 
     const member = await requireWorkspaceMember(workspaceId, uid);
@@ -26,10 +30,11 @@ export async function POST(req: Request) {
       price === "99"
         ? process.env.STRIPE_PRICE_CASH_ACCEL_99
         : price === "199"
-        ? process.env.STRIPE_PRICE_CASH_ACCEL_199
-        : null;
+          ? process.env.STRIPE_PRICE_CASH_ACCEL_199
+          : null;
 
-    if (!priceId) return new NextResponse("Invalid price option", { status: 400 });
+    if (!priceId)
+      return new NextResponse("Invalid price option", { status: 400 });
 
     // Get or create Stripe customer
     const db = (await import("@/lib/firebaseAdmin")).adminDb();
@@ -54,6 +59,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Cash Acceleration Checkout error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    );
   }
 }

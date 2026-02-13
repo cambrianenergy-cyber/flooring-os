@@ -6,7 +6,10 @@ interface PhotoAnnotationProps {
   onSave?: (dataUrl: string) => void;
 }
 
-export default function PhotoAnnotation({ imageUrl, onSave }: PhotoAnnotationProps) {
+export default function PhotoAnnotation({
+  imageUrl,
+  onSave,
+}: PhotoAnnotationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState(false);
   const [color, setColor] = useState("#ff0000");
@@ -38,7 +41,11 @@ export default function PhotoAnnotation({ imageUrl, onSave }: PhotoAnnotationPro
     if (!canvas) return;
     const dataUrl = canvas.toDataURL();
     if (onSave) onSave(dataUrl);
-    window.dispatchEvent(new CustomEvent("toast", { detail: { type: "success", message: "Annotated photo saved!" } }));
+    window.dispatchEvent(
+      new CustomEvent("toast", {
+        detail: { type: "success", message: "Annotated photo saved!" },
+      }),
+    );
   };
 
   // Draw image on canvas
@@ -57,12 +64,33 @@ export default function PhotoAnnotation({ imageUrl, onSave }: PhotoAnnotationPro
   }, [imageUrl]);
 
   return (
-    <div className="max-w-lg mx-auto p-4 border rounded bg-white">
+    <div className="max-w-lg mx-auto p-4 border rounded bg-background text-slate-900">
       <h2 className="text-lg font-semibold mb-2">Photo Annotation</h2>
       <div className="flex gap-2 mb-2">
-        <label>Color: <input type="color" value={color} onChange={e => setColor(e.target.value)} /></label>
-        <label>Line Width: <input type="number" min={1} max={10} value={lineWidth} onChange={e => setLineWidth(Number(e.target.value))} /></label>
-        <button onClick={handleSave} className="bg-blue-600 text-white px-3 py-1 rounded">Save</button>
+        <label>
+          Color:{" "}
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
+        </label>
+        <label>
+          Line Width:{" "}
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={lineWidth}
+            onChange={(e) => setLineWidth(Number(e.target.value))}
+          />
+        </label>
+        <button
+          onClick={handleSave}
+          className="bg-blue-600 text-white px-3 py-1 rounded"
+        >
+          Save
+        </button>
       </div>
       <canvas
         ref={canvasRef}

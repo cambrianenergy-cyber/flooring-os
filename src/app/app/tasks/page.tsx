@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { useState } from "react";
 
 interface Task {
   id: string;
@@ -59,8 +65,10 @@ export default function TasksPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesStatus = filterStatus === "all" || task.status === filterStatus;
-    const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+    const matchesStatus =
+      filterStatus === "all" || task.status === filterStatus;
+    const matchesPriority =
+      filterPriority === "all" || task.priority === filterPriority;
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -96,7 +104,7 @@ export default function TasksPage() {
       case "low":
         return "text-green-400";
       default:
-        return "text-gray-400";
+        return "text-muted";
     }
   };
 
@@ -113,8 +121,10 @@ export default function TasksPage() {
   const updateTaskStatus = (taskId: string, newStatus: Task["status"]) => {
     setTasks((prev) =>
       prev.map((t) =>
-        t.id === taskId ? { ...t, status: newStatus, updatedAt: new Date().toISOString() } : t
-      )
+        t.id === taskId
+          ? { ...t, status: newStatus, updatedAt: new Date().toISOString() }
+          : t,
+      ),
     );
   };
 
@@ -139,25 +149,33 @@ export default function TasksPage() {
         <Card>
           <CardContent className="p-4">
             <p className="ui-text-muted text-sm">Total Tasks</p>
-            <p className="text-3xl font-bold text-primary mt-2">{stats.total}</p>
+            <p className="text-3xl font-bold text-primary mt-2">
+              {stats.total}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="ui-text-muted text-sm">In Progress</p>
-            <p className="text-3xl font-bold text-blue-400 mt-2">{stats.inProgress}</p>
+            <p className="text-3xl font-bold text-blue-400 mt-2">
+              {stats.inProgress}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="ui-text-muted text-sm">Pending</p>
-            <p className="text-3xl font-bold text-yellow-400 mt-2">{stats.pending}</p>
+            <p className="text-3xl font-bold text-yellow-400 mt-2">
+              {stats.pending}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="ui-text-muted text-sm">Completed</p>
-            <p className="text-3xl font-bold text-green-400 mt-2">{stats.completed}</p>
+            <p className="text-3xl font-bold text-green-400 mt-2">
+              {stats.completed}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -167,7 +185,9 @@ export default function TasksPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">Search</label>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Search
+              </label>
               <input
                 type="text"
                 placeholder="Search tasks..."
@@ -177,7 +197,9 @@ export default function TasksPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">Status</label>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Status
+              </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -190,7 +212,9 @@ export default function TasksPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">Priority</label>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Priority
+              </label>
               <select
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
@@ -210,7 +234,9 @@ export default function TasksPage() {
       <Card>
         <CardHeader>
           <CardTitle>Your Tasks</CardTitle>
-          <CardDescription>{filteredTasks.length} task(s) found</CardDescription>
+          <CardDescription>
+            {filteredTasks.length} task(s) found
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredTasks.length === 0 ? (
@@ -234,23 +260,35 @@ export default function TasksPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-semibold text-primary">{task.title}</h3>
-                        <span className={`text-xs px-2 py-1 rounded font-semibold text-white ${getStatusColor(task.status)}`}>
+                        <h3 className="text-lg font-semibold text-primary">
+                          {task.title}
+                        </h3>
+                        <span
+                          className={`text-xs px-2 py-1 rounded font-semibold text-white ${getStatusColor(task.status)}`}
+                        >
                           {task.status.replace("-", " ")}
                         </span>
-                        <span className={`text-xs font-bold ${getPriorityColor(task.priority)}`}>
+                        <span
+                          className={`text-xs font-bold ${getPriorityColor(task.priority)}`}
+                        >
                           {task.priority.toUpperCase()}
                         </span>
                       </div>
                       {task.description && (
-                        <p className="ui-text-muted text-sm mt-1">{task.description}</p>
+                        <p className="ui-text-muted text-sm mt-1">
+                          {task.description}
+                        </p>
                       )}
                       <div className="flex items-center gap-4 mt-3 text-xs">
                         {task.assignedTo && (
-                          <span className="text-secondary">👤 {task.assignedTo}</span>
+                          <span className="text-secondary">
+                            👤 {task.assignedTo}
+                          </span>
                         )}
                         {task.dueDate && (
-                          <span className="text-secondary">📅 {new Date(task.dueDate).toLocaleDateString()}</span>
+                          <span className="text-secondary">
+                            📅 {new Date(task.dueDate).toLocaleDateString()}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -270,7 +308,9 @@ export default function TasksPage() {
                         onClick={(e) => {
                           e.stopPropagation();
                           // Delete functionality
-                          setTasks((prev) => prev.filter((t) => t.id !== task.id));
+                          setTasks((prev) =>
+                            prev.filter((t) => t.id !== task.id),
+                          );
                         }}
                         className="px-3 py-1 bg-red-600 text-primary text-xs rounded font-medium hover:brightness-110 transition"
                       >
@@ -287,7 +327,7 @@ export default function TasksPage() {
 
       {/* Task Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay bg-opacity-60">
           <div className="bg-surface rounded-lg shadow-lg max-w-lg w-full p-6 relative border-soft">
             <button
               className="absolute top-2 right-2 text-muted hover:text-primary text-2xl font-bold"
@@ -300,7 +340,9 @@ export default function TasksPage() {
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-primary mb-2">Title</label>
+                <label className="block text-sm font-medium text-primary mb-2">
+                  Title
+                </label>
                 <input
                   type="text"
                   placeholder="Task title"
@@ -309,7 +351,9 @@ export default function TasksPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-primary mb-2">Description</label>
+                <label className="block text-sm font-medium text-primary mb-2">
+                  Description
+                </label>
                 <textarea
                   placeholder="Task description"
                   defaultValue={selectedTask?.description || ""}
@@ -319,16 +363,26 @@ export default function TasksPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Status</label>
-                  <select defaultValue={selectedTask?.status || "pending"} className="w-full">
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Status
+                  </label>
+                  <select
+                    defaultValue={selectedTask?.status || "pending"}
+                    className="w-full"
+                  >
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Priority</label>
-                  <select defaultValue={selectedTask?.priority || "medium"} className="w-full">
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Priority
+                  </label>
+                  <select
+                    defaultValue={selectedTask?.priority || "medium"}
+                    className="w-full"
+                  >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -337,7 +391,9 @@ export default function TasksPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Assign To</label>
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Assign To
+                  </label>
                   <input
                     type="text"
                     placeholder="Person's name"
@@ -346,7 +402,9 @@ export default function TasksPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Due Date</label>
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Due Date
+                  </label>
                   <input
                     type="date"
                     defaultValue={selectedTask?.dueDate || ""}

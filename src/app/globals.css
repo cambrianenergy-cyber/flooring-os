@@ -1,373 +1,63 @@
-html {
-  text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-}
-/* App body vendor-prefixed styles for browser support */
-.app-body {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  -webkit-mask-image: none;
-  mask-image: none;
-  mask-image: none;
-  -webkit-user-select: auto;
-  user-select: auto;
-  -ms-user-select: auto;
-}
-@layer base {
-  html,
-  :host {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-}
-
-[data-nextjs-dialog-backdrop] {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-/* Progress bar inner width for onboarding */
-.progress-bar-inner {
-  width: var(--progress-width, 0);
-}
-/* Onboarding progress bar width */
-.onboarding-progress-bar {
-  width: var(--progress-width, 0);
-}
-/* Expansion billing skip button font size */
-.expansion-skip-btn {
-  font-size: 1.1rem;
-}
-/* Measurement layout fullscreen styles */
-.measurement-layout {
-  margin: 0;
-  height: 100vh;
-  overflow: hidden;
-}
-/* Progress circle transition for home page */
-.progress-circle {
-  transition: stroke-dashoffset 0.5s;
-}
-/* Status color for logo branding settings */
-.status-success {
-  color: #15803d;
-}
-.status-error {
-  color: #b91c1c;
-}
-/* Logo preview image for settings section */
-.logo-preview-img {
-  object-fit: contain;
-  max-height: 60px;
-}
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  /* Background colors */
-  --bg-app: #0b2d5c;
-  --bg-surface: #123a73;
-  --bg-surface-2: #154a8a;          /* slightly lighter surface */
-  --bg-card: #154a8a;
-  --bg-input: #1b5fb3;
-
-  /* Text colors */
-  --text-primary: #ffffff;
-  --text-secondary: #cfd8e3;
-  --text-muted: #cdd9ea;
-
-  /* Borders */
-  --border-soft: rgba(255, 255, 255, 0.12);
-  
-  /* Legacy semantic mappings */
-  --background: 11 45 92;           /* #0b2d5c */
-  --foreground: 255 255 255;        /* #ffffff */
-  --muted: 155 179 209;             /* #9bb3d1 */
-  --border: rgba(255, 255, 255, 0.12);
-  
-  /* Page background - centralized theming */
-  --page-bg: #0b2d5c;               /* Main app background */
-  --page-surface: #123a73;          /* Surface background */
-  --page-panel: #154a8a;            /* Panel/container background */
-  
-  /* Core palette */
-  --bg: #0b2d5c;
-  --surface: #123a73;
-  --panel: #154a8a;
-  --muted-bg: #1b5fb3;
-  --ink-strong: #ffffff;
-  --ink-soft: #cfd8e3;
-  --ink-muted: #9bb3d1;
-  --accent: #3b82f6;
-  --accent-strong: #2563eb;
-  --accent-ghost: rgba(59, 130, 246, 0.14);
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --success: #10b981;
-  --glow: rgba(59, 130, 246, 0.35);
-
-  /* Shape + shadows */
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --radius-sm: 10px;
-  --shadow-ambient: 0 25px 70px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 16px 30px rgba(0, 0, 0, 0.35);
-
-  /* Typography */
-  --font-body: var(--font-geist-sans, "Inter", system-ui, -apple-system, sans-serif);
-  --font-mono: var(--font-geist-mono, "SFMono-Regular", Menlo, Consolas, monospace);
-  --font-weight-strong: 650;
-  --font-weight-regular: 430;
-}
-
-/* Dark mode (explicit) */
-.dark {
   --background: 12 17 26;
   --foreground: 232 237 247;
   --muted: 159 178 201;
-  --border: rgba(255, 255, 255, 0.06);
-}
-
-
-* {
-  box-sizing: border-box;
-  color: inherit;
-}
-
-
-html {
-  background-color: var(--page-bg);
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  --border: #2a3140;
+  --page-bg: #10141c;
+  --page-surface: #181e2a;
+  --page-panel: #232b3b;
+  --accent: #007aff;
+  --danger: #e11d48;
+  --success: #22c55e;
+  --radius-lg: 1rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.25rem;
+  --shadow-ambient: 0 2px 8px 0 rgba(0,0,0,0.08);
+  --shadow-soft: 0 1.5px 6px 0 rgba(0,0,0,0.06);
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Fira Mono', monospace;
 }
 
 body {
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  -webkit-mask-image: none;
-  mask-image: none;
-  mask-image: none;
-  mask-image: none;
-  -webkit-user-select: auto;
-  user-select: auto;
-  -ms-user-select: auto;
-  background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.08), transparent 25%),
-    radial-gradient(circle at 80% 10%, rgba(96, 165, 250, 0.1), transparent 30%),
-    radial-gradient(circle at 50% 90%, rgba(147, 197, 253, 0.08), transparent 35%),
-    var(--page-bg);
-  color: var(--ink-strong);
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
   font-family: var(--font-body);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  margin: 0;
-  padding: 0;
 }
 
-* {
-  color: inherit;
+.bg-background {
+  background-color: rgb(var(--background));
 }
-
-
-::selection {
-  background: var(--accent-ghost);
-  color: var(--ink-strong);
+.bg-page-bg {
+  background-color: var(--page-bg);
 }
-
-.glass-panel {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(12px);
+.bg-page-surface {
+  background-color: var(--page-surface);
 }
-
-.pill {
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+.bg-page-panel {
+  background-color: var(--page-panel);
 }
-
-.grid-bg {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
+.text-foreground {
+  color: rgb(var(--foreground));
 }
-
-.laser-pulse {
-  box-shadow: 0 0 0 0 var(--glow);
-  animation: pulse 1.8s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 var(--glow);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(89, 242, 194, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(89, 242, 194, 0);
-  }
-}
-
-/* Utility classes for color system */
-.bg-app {
-  background-color: var(--bg-app);
-}
-
-.bg-surface {
-  background-color: var(--bg-surface);
-}
-
-.bg-card {
-  background-color: var(--bg-card);
-}
-
-.bg-input {
-  background-color: var(--bg-input);
-}
-
-.text-primary {
-  color: var(--text-primary);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-}
-
 .text-muted {
-  color: var(--text-muted);
+  color: rgb(var(--muted));
 }
-
-.border-soft {
-  border: 1px solid var(--border-soft);
+.text-accent {
+  color: var(--accent);
 }
-
-/* UI Surface Utilities */
-.ui-surface {
-  background: var(--bg-surface-2);
-  color: var(--text-primary);
-  border: 1px solid var(--border-soft);
+.text-danger {
+  color: var(--danger);
 }
-
-.ui-surface-muted {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-soft);
+.text-success {
+  color: var(--success);
 }
-
-.ui-text-muted {
-  color: var(--text-muted);
+.border-dark-border {
+  border-color: var(--border);
 }
-
-/* QUICK PATCH: neutralize common "white tile" offenders inside the app */
-.app-shell .bg-white,
-.app-shell .bg-gray-50,
-.app-shell .bg-gray-100,
-.app-shell .bg-slate-50,
-.app-shell .bg-neutral-50,
-.app-shell .bg-blue-50 {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-.app-shell .bg-gray-200 {
-  background: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-}
-
-/* IMMEDIATE PATCH: Ensure input, textarea, and select text is visible */
-input,
-textarea,
-select {
-  color: var(--ink-strong, #fff) !important;
-  background: var(--bg-input, #1b5fb3) !important;
-  border-color: var(--border-soft, rgba(255,255,255,0.12)) !important;
-}
-input::placeholder,
-textarea::placeholder {
-  color: var(--ink-muted, #9bb3d1) !important;
-  opacity: 1;
-}
-
-.app-shell .text-gray-700,
-.app-shell .text-gray-800,
-.app-shell .text-gray-900,
-.app-shell .text-black {
-  color: var(--text-primary) !important;
-}
-
-.app-shell .text-gray-400,
-.app-shell .text-gray-500,
-.app-shell .text-gray-600 {
-  color: var(--text-secondary) !important;
-}
-
-.app-shell .border-gray-200,
-.app-shell .border-gray-300 {
-  border-color: var(--border-soft) !important;
-}
-
-/* Button and link styles */
-button, .btn {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border-soft);
-}
-
-button:hover, .btn:hover {
-  background-color: var(--bg-input);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-a {
-  color: #60a5fa;
-  text-decoration: none;
-}
-
-a:hover {
-  color: #93c5fd;
-  text-decoration: underline;
-}
-/* SELECT / DROPDOWN STYLES */
-select,
-.ui-select {
-  background-color: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid var(--border-soft);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  padding: 0.5rem;
-  cursor: pointer;
-}
-
-/* OPTION LIST (open dropdown) */
-select option {
-  background-color: #123a73;   /* solid, readable */
-  color: #ffffff;
-}
-
-/* Hover / selected option */
-select option:checked,
-select option:hover {
-  background-color: #1b5fb3;
-  color: #ffffff;
-}
-
-/* Disabled option */
-select option:disabled {
-  color: #9bb3d1;
-}
-
-/* Focus state */
-select:focus {
-  outline: none;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+.border-dark-muted {
+  border-color: var(--muted);
 }

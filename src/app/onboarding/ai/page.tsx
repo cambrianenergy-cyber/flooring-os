@@ -1,17 +1,36 @@
 "use client";
 
-import { useEffect, useMemo, useState, useReducer } from "react";
-import { useRouter } from "next/navigation";
-import OnboardingShell from "../OnboardingShell";
-import { FormCard, useOnboardingState } from "../../../components/onboarding/FormCard";
-import { useWorkspace } from "../../../lib/workspaceContext";
 import { authHeaders } from "@/lib/client/authHeader";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useState } from "react";
+import {
+    FormCard,
+    useOnboardingState,
+} from "../../../components/onboarding/FormCard";
+import { useWorkspace } from "../../../lib/workspaceContext";
+import OnboardingShell from "../OnboardingShell";
 
 const AGENTS = [
-  { key: "estimator_ai", name: "Estimator AI", desc: "Builds estimates, scope, and line items." },
-  { key: "followup_ai", name: "Follow-up AI", desc: "Auto follow-ups to increase close rate." },
-  { key: "scheduler_ai", name: "Scheduler AI", desc: "Books appointments and confirms timelines." },
-  { key: "review_ai", name: "Review Responder", desc: "Responds to reviews professionally." },
+  {
+    key: "estimator_ai",
+    name: "Estimator AI",
+    desc: "Builds estimates, scope, and line items.",
+  },
+  {
+    key: "followup_ai",
+    name: "Follow-up AI",
+    desc: "Auto follow-ups to increase close rate.",
+  },
+  {
+    key: "scheduler_ai",
+    name: "Scheduler AI",
+    desc: "Books appointments and confirms timelines.",
+  },
+  {
+    key: "review_ai",
+    name: "Review Responder",
+    desc: "Responds to reviews professionally.",
+  },
 ] as const;
 
 type Tone = "professional" | "friendly" | "firm";
@@ -36,7 +55,12 @@ function ToggleRow({
       <button
         type="button"
         onClick={onToggle}
-        className={["rounded-xl px-4 py-2 text-sm border", enabled ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200",].join(" ")}
+        className={[
+          "rounded-xl px-4 py-2 text-sm border",
+          enabled
+            ? "bg-slate-900 text-background border-slate-900"
+            : "bg-background text-slate-700 border-slate-200",
+        ].join(" ")}
       >
         {enabled ? "Enabled" : "Disabled"}
       </button>
@@ -50,7 +74,13 @@ export default function AIPage() {
   const workspaceId = workspace?.id || "";
   const { data } = useOnboardingState(workspaceId);
 
-  function aiReducer(state: { tone: Tone; enabledAgents: string[] }, action: { type: "set"; value: Partial<{ tone: Tone; enabledAgents: string[] }> }) {
+  function aiReducer(
+    state: { tone: Tone; enabledAgents: string[] },
+    action: {
+      type: "set";
+      value: Partial<{ tone: Tone; enabledAgents: string[] }>;
+    },
+  ) {
     switch (action.type) {
       case "set":
         return { ...state, ...action.value };
@@ -58,33 +88,51 @@ export default function AIPage() {
         return state;
     }
   }
-  const [aiState, dispatchAI] = useReducer(aiReducer, { tone: "professional", enabledAgents: ["estimator_ai", "followup_ai"] });
+  const [aiState, dispatchAI] = useReducer(aiReducer, {
+    tone: "professional",
+    enabledAgents: ["estimator_ai", "followup_ai"],
+  });
   const tone = aiState.tone;
   const enabledAgents = aiState.enabledAgents;
-  const [samplePrompt, setSamplePrompt] = useState("Write a friendly follow-up message for a flooring estimate.");
+  const [samplePrompt, setSamplePrompt] = useState(
+    "Write a friendly follow-up message for a flooring estimate.",
+  );
   const [sampleOutput, setSampleOutput] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!data) return;
     const a: Partial<{ tone: Tone; enabledAgents: string[] }> = data.ai || {};
-    dispatchAI({ type: "set", value: {
-      tone: a.tone ?? "professional",
-      enabledAgents: Array.isArray(a.enabledAgents) ? a.enabledAgents : ["estimator_ai"]
-    }});
+    dispatchAI({
+      type: "set",
+      value: {
+        tone: a.tone ?? "professional",
+        enabledAgents: Array.isArray(a.enabledAgents)
+          ? a.enabledAgents
+          : ["estimator_ai"],
+      },
+    });
   }, [data]);
 
   function toggleAgent(k: string) {
-    dispatchAI({ type: "set", value: {
-      enabledAgents: enabledAgents.includes(k) ? enabledAgents.filter((x: string) => x !== k) : [...enabledAgents, k]
-    }});
+    dispatchAI({
+      type: "set",
+      value: {
+        enabledAgents: enabledAgents.includes(k)
+          ? enabledAgents.filter((x: string) => x !== k)
+          : [...enabledAgents, k],
+      },
+    });
   }
 
   const usageSummary = useMemo(() => {
     // placeholder — later read entitlements doc and show real caps
     const base = 5000;
     const extra = enabledAgents.length * 1500;
-    return { monthlyActions: base + extra, note: "Estimated cap preview (will match plan entitlements)." };
+    return {
+      monthlyActions: base + extra,
+      note: "Estimated cap preview (will match plan entitlements).",
+    };
   }, [enabledAgents]);
 
   function runSample() {
@@ -92,16 +140,29 @@ export default function AIPage() {
       tone === "professional"
         ? "Professional"
         : tone === "friendly"
-        ? "Friendly"
-        : "Firm but respectful";
+          ? "Friendly"
+          : "Firm but respectful";
 
     setSampleOutput(
-      `${toneLead} sample:\n\nHi! Just checking in to see if you had any questions about the flooring estimate. If you'd like, I can adjust options to fit your budget and timeline. What day works best for a quick call?`
+      `${toneLead} sample:\n\nHi! Just checking in to see if you had any questions about the flooring estimate. If you'd like, I can adjust options to fit your budget and timeline. What day works best for a quick call?`,
     );
   }
 
+  // Validation state
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   async function save(next: string) {
     if (!workspaceId) return;
+    // Validation: require at least one agent and a tone
+    if (!tone) {
+      setValidationError("Please select a tone style.");
+      return;
+    }
+    if (!enabledAgents || enabledAgents.length === 0) {
+      setValidationError("Please enable at least one AI assistant.");
+      return;
+    }
+    setValidationError(null);
     setBusy(true);
     const headers = await authHeaders();
     await fetch("/api/onboarding/save", {
@@ -119,11 +180,16 @@ export default function AIPage() {
   return (
     <OnboardingShell step={6}>
       <div className="rounded-xl border bg-yellow-100 p-3 text-sm mb-4">
-        NEW AI PAGE IS RENDERING ✅
+        NEW AI PAGE IS RENDERING 197
       </div>
       <div className="text-xs text-slate-500 mb-4">
         workspaceId: <span className="font-mono">{String(workspaceId)}</span>
       </div>
+      {validationError && (
+        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+          {validationError}
+        </div>
+      )}
       <div
         className="grid grid-cols-1 gap-6 md:grid-cols-2"
         style={{
@@ -137,13 +203,21 @@ export default function AIPage() {
           WebkitUserSelect: "none",
         }}
       >
-        <FormCard title="AI Assistants" subtitle="Turn agents on/off and set your tone style.">
+        <FormCard
+          title="AI Assistants"
+          subtitle="Turn agents on/off and set your tone style."
+        >
           <div className="rounded-xl border p-4">
             <div className="text-xs text-slate-500">Tone style</div>
             <select
               className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
               value={tone}
-              onChange={(e) => dispatchAI({ type: "set", value: { tone: e.target.value as Tone } })}
+              onChange={(e) =>
+                dispatchAI({
+                  type: "set",
+                  value: { tone: e.target.value as Tone },
+                })
+              }
             >
               <option value="professional">Professional</option>
               <option value="friendly">Friendly</option>
@@ -168,10 +242,18 @@ export default function AIPage() {
         </FormCard>
 
         <div className="space-y-6">
-          <FormCard title="AI Usage Summary" subtitle="Preview of monthly cap + what’s enabled.">
-            <div className="rounded-xl border bg-slate-50 p-4">
-              <div className="text-sm font-semibold">{usageSummary.monthlyActions.toLocaleString()} AI actions / month</div>
-              <div className="mt-1 text-xs text-slate-600">{usageSummary.note}</div>
+          <FormCard
+            title="AI Usage Summary"
+            subtitle="Preview of monthly cap + what’s enabled."
+          >
+            <div className="rounded-xl border bg-slate-50 text-slate-900 p-4">
+              <div className="text-sm font-semibold">
+                {usageSummary.monthlyActions.toLocaleString()} AI actions /
+                month
+              </div>
+              <div className="mt-1 text-xs text-slate-600">
+                {usageSummary.note}
+              </div>
             </div>
 
             <div className="mt-4 rounded-xl border p-4">
@@ -181,12 +263,16 @@ export default function AIPage() {
                 value={samplePrompt}
                 onChange={(e) => setSamplePrompt(e.target.value)}
               />
-              <button type="button" onClick={runSample} className="mt-3 rounded-xl bg-slate-900 px-4 py-2 text-sm text-white">
+              <button
+                type="button"
+                onClick={runSample}
+                className="mt-3 rounded-xl bg-slate-900 px-4 py-2 text-sm text-background"
+              >
                 Generate demo
               </button>
 
               {sampleOutput && (
-                <pre className="mt-3 whitespace-pre-wrap rounded-xl border bg-white p-3 text-xs text-slate-700">
+                <pre className="mt-3 whitespace-pre-wrap rounded-xl border bg-background p-3 text-xs text-slate-700">
                   {sampleOutput}
                 </pre>
               )}
@@ -196,9 +282,14 @@ export default function AIPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => router.push("/onboarding/packs")}>Back</button>
         <button
-          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-white disabled:opacity-50"
+          className="rounded-xl border px-4 py-2 text-sm"
+          onClick={() => router.push("/onboarding/packs")}
+        >
+          Back
+        </button>
+        <button
+          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-background disabled:opacity-50"
           disabled={busy}
           onClick={() => save("/onboarding/import")}
         >

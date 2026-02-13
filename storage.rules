@@ -3,17 +3,17 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     // Attachments for jobs
-    match /workspaces/{workspaceId}/jobs/{jobId}/attachments/{fileName} {
+    match /workspaces/{S5mlWvEGqBhK7J1nMSE07wwIlJl1}/jobs/{jobId}/attachments/{fileName} {
       allow read, write: if request.auth != null && isMember(workspaceId);
     }
 
     // Workspace-level documents (PDFs, etc)
-    match /workspaces/{workspaceId}/documents/{docId} {
+    match /workspaces/{S5mlWvEGqBhK7J1nMSE07wwIlJl1}/documents/{docId} {
       allow read, write: if request.auth != null && isMember(workspaceId);
     }
 
     // Room floorplans
-    match /workspaces/{workspaceId}/rooms/{roomId}/floorplans/{fileName} {
+    match /workspaces/{S5mlWvEGqBhK7J1nMSE07wwIlJl1}/rooms/{roomId}/floorplans/{fileName} {
       allow read, write: if request.auth != null && isMember(workspaceId);
     }
 
@@ -23,7 +23,7 @@ service firebase.storage {
     }
 
     // Helper function for RBAC
-    function isMember(workspaceId) {
+    function isMember(S5mlWvEGqBhK7J1nMSE07wwIlJl1) {
       return request.auth != null &&
         exists(/databases/(default)/documents/workspace_members/$(workspaceId + "_" + request.auth.uid)) &&
         get(/databases/(default)/documents/workspace_members/$(workspaceId + "_" + request.auth.uid)).data.status == "active";

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import RunDetails from "@/components/RunDetails";
 import { runWorkflow } from "@/lib/runWorkflow";
+import { useEffect, useState } from "react";
 
 // If you already have a workspace context/store, swap this out.
 // For now, we accept workspaceId from localStorage (common in your app pattern).
@@ -47,8 +47,6 @@ export default function RunsPage() {
     }
   };
 
-
-
   async function handleRunWorkflow() {
     if (!workflowIdInput || !workspaceId) return;
     setRunningWorkflow(true);
@@ -56,7 +54,12 @@ export default function RunsPage() {
       await runWorkflow(workflowIdInput, workspaceId);
     } catch (e: unknown) {
       let msg = "Failed to run workflow";
-      if (typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string") {
+      if (
+        typeof e === "object" &&
+        e &&
+        "message" in e &&
+        typeof (e as { message?: unknown }).message === "string"
+      ) {
         msg = (e as { message: string }).message;
       }
       setErr(msg);
@@ -65,38 +68,68 @@ export default function RunsPage() {
     }
   }
 
-
   async function loadRuns(signal?: AbortSignal) {
     if (!workspaceId) return;
     setErr(null);
 
     try {
-      const res = await fetch(`/api/ai/workflows/runs?workspaceId=${encodeURIComponent(workspaceId)}`, {
-        signal,
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/ai/workflows/runs?workspaceId=${encodeURIComponent(workspaceId)}`,
+        {
+          signal,
+          cache: "no-store",
+        },
+      );
 
       const body = await readJsonSafe(res);
 
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}${body ? ` -> ${JSON.stringify(body)}` : ""}`);
+        throw new Error(
+          `HTTP ${res.status}: ${res.statusText}${body ? ` -> ${JSON.stringify(body)}` : ""}`,
+        );
       }
 
-      if (!body || typeof body !== 'object' || !('ok' in body) || !(body as { ok: unknown }).ok) {
-        const errorMsg = typeof body === 'object' && body && 'error' in body && typeof (body as { error?: unknown }).error === 'string'
-          ? (body as { error: string }).error
-          : "Failed to load runs";
+      if (
+        !body ||
+        typeof body !== "object" ||
+        !("ok" in body) ||
+        !(body as { ok: unknown }).ok
+      ) {
+        const errorMsg =
+          typeof body === "object" &&
+          body &&
+          "error" in body &&
+          typeof (body as { error?: unknown }).error === "string"
+            ? (body as { error: string }).error
+            : "Failed to load runs";
         throw new Error(errorMsg);
       }
       const runsPayload = (body as { runs?: unknown[] }).runs ?? [];
-      setRuns(Array.isArray(runsPayload) ? runsPayload as RunRow[] : []);
-      if (!selectedRunId && Array.isArray(runsPayload) && runsPayload[0] && typeof runsPayload[0] === 'object' && 'id' in runsPayload[0]) {
+      setRuns(Array.isArray(runsPayload) ? (runsPayload as RunRow[]) : []);
+      if (
+        !selectedRunId &&
+        Array.isArray(runsPayload) &&
+        runsPayload[0] &&
+        typeof runsPayload[0] === "object" &&
+        "id" in runsPayload[0]
+      ) {
         setSelectedRunId((runsPayload[0] as { id: string }).id);
       }
     } catch (e: unknown) {
-      if (typeof e === 'object' && e && 'name' in e && (e as { name?: unknown }).name === 'AbortError') return;
+      if (
+        typeof e === "object" &&
+        e &&
+        "name" in e &&
+        (e as { name?: unknown }).name === "AbortError"
+      )
+        return;
       let msg = "Failed to load runs";
-      if (typeof e === "object" && e && "message" in e && typeof (e as { message?: unknown }).message === "string") {
+      if (
+        typeof e === "object" &&
+        e &&
+        "message" in e &&
+        typeof (e as { message?: unknown }).message === "string"
+      ) {
         msg = (e as { message: string }).message;
       }
       setErr(msg);
@@ -126,7 +159,8 @@ export default function RunsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Workflow Runs</h1>
           <p className="text-sm text-muted-foreground">
-            Live execution monitor (polling). Workspace: <span className="font-mono">{workspaceId || "—"}</span>
+            Live execution monitor (polling). Workspace:{" "}
+            <span className="font-mono">{workspaceId || "—"}</span>
           </p>
         </div>
 
@@ -156,12 +190,16 @@ export default function RunsPage() {
       </div>
 
       {showRunModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-overlay/50 flex items-center justify-center z-50">
           <div className="bg-[#1b2435] rounded border border-[#252f42] p-6 shadow-lg max-w-sm w-full mx-4">
-            <h2 className="text-lg font-semibold mb-4 text-[#e8edf7]">Run Workflow</h2>
+            <h2 className="text-lg font-semibold mb-4 text-[#e8edf7]">
+              Run Workflow
+            </h2>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium mb-1 text-[#e8edf7]">Workflow ID</label>
+                <label className="block text-sm font-medium mb-1 text-[#e8edf7]">
+                  Workflow ID
+                </label>
                 <input
                   type="text"
                   value={workflowIdInput}
@@ -194,12 +232,12 @@ export default function RunsPage() {
         </div>
       )}
 
-
       {!workspaceId && (
         <div className="p-4 rounded border bg-muted/30">
           <div className="font-medium">No workspaceId found</div>
           <div className="text-sm text-muted-foreground">
-            Set <span className="font-mono">localStorage.workspaceId</span> or wire to your workspace selector.
+            Set <span className="font-mono">localStorage.workspaceId</span> or
+            wire to your workspace selector.
           </div>
         </div>
       )}
@@ -227,9 +265,11 @@ export default function RunsPage() {
           ) : (
             <div className="divide-y">
               {runs.map((r) => {
-                const status = typeof r.status === 'string' ? r.status : '';
-                const workflowId = typeof r.workflowId === 'string' ? r.workflowId : '';
-                const nextStepIndex = typeof r.nextStepIndex === 'number' ? r.nextStepIndex : 0;
+                const status = typeof r.status === "string" ? r.status : "";
+                const workflowId =
+                  typeof r.workflowId === "string" ? r.workflowId : "";
+                const nextStepIndex =
+                  typeof r.nextStepIndex === "number" ? r.nextStepIndex : 0;
                 const steps = Array.isArray(r.steps) ? r.steps : [];
                 return (
                   <button
@@ -240,7 +280,9 @@ export default function RunsPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <div className="font-mono text-xs truncate">{String(r.id)}</div>
+                      <div className="font-mono text-xs truncate">
+                        {String(r.id)}
+                      </div>
                       <span className="text-xs px-2 py-1 rounded border">
                         {status}
                       </span>
@@ -248,7 +290,9 @@ export default function RunsPage() {
 
                     <div className="mt-1 text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
                       <span className="font-mono">workflow: {workflowId}</span>
-                      <span>step: {nextStepIndex}/{steps.length}</span>
+                      <span>
+                        step: {nextStepIndex}/{steps.length}
+                      </span>
                     </div>
                   </button>
                 );

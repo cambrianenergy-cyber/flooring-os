@@ -1,17 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import OnboardingShell from "../OnboardingShell";
-import { FormCard, useOnboardingState } from "../../../components/onboarding/FormCard";
-import { useWorkspace } from "../../../lib/workspaceContext";
 import { authHeaders } from "@/lib/client/authHeader";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import {
+    FormCard,
+    useOnboardingState,
+} from "../../../components/onboarding/FormCard";
+import { useWorkspace } from "../../../lib/workspaceContext";
+import OnboardingShell from "../OnboardingShell";
 
 function Check({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div className="flex items-center justify-between rounded-xl border p-3">
       <div className="text-sm">{label}</div>
-      <div className={["text-sm font-semibold", ok ? "text-emerald-700" : "text-slate-500"].join(" ")}>
+      <div
+        className={[
+          "text-sm font-semibold",
+          ok ? "text-emerald-700" : "text-slate-500",
+        ].join(" ")}
+      >
         {ok ? "Ready ✅" : "Missing"}
       </div>
     </div>
@@ -27,17 +35,21 @@ export default function ReviewPage() {
   const [busy, setBusy] = useState(false);
 
   const checks = useMemo(() => {
-    const company: Partial<{ legalName: string; phone: string }> = data?.company || {};
+    const company: Partial<{ legalName: string; phone: string }> =
+      data?.company || {};
     const team: Partial<{ invites: unknown[] }> = data?.team || {};
     const stripe: Partial<{ depositPct: number }> = data?.stripeSetup || {};
-    const pricing: Partial<{ laborRate: number; marginPct: number }> = data?.pricing || {};
+    const pricing: Partial<{ laborRate: number; marginPct: number }> =
+      data?.pricing || {};
     const packs: Partial<{ selectedPack: string }> = data?.packs || {};
     const ai: Partial<{ enabledAgents: string[] }> = data?.ai || {};
 
     return {
       company: Boolean(company.legalName && company.phone),
       stripe: typeof stripe.depositPct !== "undefined",
-      pricing: Boolean(pricing.laborRate && typeof pricing.marginPct !== "undefined"),
+      pricing: Boolean(
+        pricing.laborRate && typeof pricing.marginPct !== "undefined",
+      ),
       packs: Boolean(packs.selectedPack),
       ai: Array.isArray(ai.enabledAgents) && ai.enabledAgents.length > 0,
       team: Array.isArray(team.invites),
@@ -66,7 +78,11 @@ export default function ReviewPage() {
       headers,
       body: JSON.stringify({
         workspaceId,
-        patch: { step: "complete", completed: true, completedAtClient: new Date().toISOString() },
+        patch: {
+          step: "complete",
+          completed: true,
+          completedAtClient: new Date().toISOString(),
+        },
       }),
     });
     setBusy(false);
@@ -76,7 +92,10 @@ export default function ReviewPage() {
   return (
     <OnboardingShell step={9}>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormCard title="Review & Launch" subtitle="Final checklist before you start running real estimates and payments.">
+        <FormCard
+          title="Review & Launch"
+          subtitle="Final checklist before you start running real estimates and payments."
+        >
           <div className="space-y-2">
             <Check ok={checks.company} label="Company profile" />
             <Check ok={checks.team} label="Team & roles" />
@@ -87,15 +106,20 @@ export default function ReviewPage() {
           </div>
 
           <div className="mt-4 rounded-xl border bg-slate-50 p-4 text-sm text-slate-700">
-            Tip: You can launch even if Stripe isn’t fully connected yet — but payments won’t work until it is.
+            Tip: You can launch even if Stripe isn’t fully connected yet — but
+            payments won’t work until it is.
           </div>
         </FormCard>
 
-        <FormCard title="Run a Test Flow" subtitle="Prove the system works end-to-end.">
+        <FormCard
+          title="Run a Test Flow"
+          subtitle="Prove the system works end-to-end."
+        >
           <div className="rounded-xl border p-4">
             <div className="font-semibold">Test estimate → checkout</div>
             <div className="mt-1 text-sm text-slate-600">
-              Generates a sample estimate using your pricing settings and creates a checkout link.
+              Generates a sample estimate using your pricing settings and
+              creates a checkout link.
             </div>
             <button
               type="button"
@@ -118,7 +142,7 @@ export default function ReviewPage() {
             type="button"
             onClick={launch}
             disabled={busy}
-            className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-background disabled:opacity-50"
           >
             {busy ? "Launching…" : "Launch Square Flooring"}
           </button>
@@ -126,8 +150,18 @@ export default function ReviewPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => router.push("/onboarding/security")}>Back</button>
-        <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => router.push("/onboarding/welcome")}>Restart onboarding</button>
+        <button
+          className="rounded-xl border px-4 py-2 text-sm"
+          onClick={() => router.push("/onboarding/security")}
+        >
+          Back
+        </button>
+        <button
+          className="rounded-xl border px-4 py-2 text-sm"
+          onClick={() => router.push("/onboarding/welcome")}
+        >
+          Restart onboarding
+        </button>
       </div>
     </OnboardingShell>
   );

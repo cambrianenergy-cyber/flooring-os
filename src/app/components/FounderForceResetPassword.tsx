@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+"use client";
+import { PermissionDenied } from "@/app/components/PermissionDenied";
 import { useToast } from "@/app/components/ToastProvider";
 import { isFounder } from "@/lib/auth-utils";
 import { auth } from "@/lib/firebase";
-import { PermissionDenied } from "@/app/components/PermissionDenied";
+import { useState } from "react";
 
 export function FounderForceResetPassword() {
   const user = auth.currentUser;
@@ -13,7 +14,10 @@ export function FounderForceResetPassword() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  if (!isFounderUser) return <PermissionDenied message="Only founders can force-reset user passwords." />;
+  if (!isFounderUser)
+    return (
+      <PermissionDenied message="Only founders can force-reset user passwords." />
+    );
 
   async function handleReset() {
     setLoading(true);
@@ -32,7 +36,10 @@ export function FounderForceResetPassword() {
         toast.show(data.error || "Failed to reset password", "error");
       }
     } catch (err: unknown) {
-      const message = err && typeof err === "object" && "message" in err ? (err as { message?: string }).message : undefined;
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message?: string }).message
+          : undefined;
       toast.show(message || "Failed to reset password", "error");
     } finally {
       setLoading(false);
@@ -41,24 +48,26 @@ export function FounderForceResetPassword() {
 
   return (
     <div className="bg-red-50 border border-red-300 rounded p-4 my-6">
-      <div className="font-bold text-red-800 mb-2">Founder: Force-Reset User Password</div>
+      <div className="font-bold text-red-800 mb-2">
+        Founder: Force-Reset User Password
+      </div>
       <div className="flex flex-col gap-2">
         <input
           type="email"
           value={targetEmail}
-          onChange={e => setTargetEmail(e.target.value)}
+          onChange={(e) => setTargetEmail(e.target.value)}
           className="border rounded px-2 py-1"
           placeholder="Target user email"
         />
         <input
           type="text"
           value={newPassword}
-          onChange={e => setNewPassword(e.target.value)}
+          onChange={(e) => setNewPassword(e.target.value)}
           className="border rounded px-2 py-1"
           placeholder="New password"
         />
         <button
-          className="bg-red-600 text-white px-3 py-1 rounded mt-2"
+          className="bg-red-600 text-background px-3 py-1 rounded mt-2"
           onClick={handleReset}
           disabled={loading || !targetEmail || !newPassword}
         >

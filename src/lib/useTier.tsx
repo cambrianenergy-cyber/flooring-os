@@ -110,7 +110,14 @@ export function TierProvider({
         ? calculateMonthlyBilling(
             subscription.tier,
             subscription.activeAddOns,
-            0 // TODO: calculate extra user packs from currentUserCount
+            (() => {
+              // Calculate extra user packs needed
+              const baseLimit = subscription.seatLimit || TIER_LIMITS[tier].maxUsers;
+              const count = subscription.currentUserCount || 1;
+              if (count <= baseLimit) return 0;
+              // Each pack adds 5 users
+              return Math.ceil((count - baseLimit) / 5);
+            })()
           )
         : 0,
 

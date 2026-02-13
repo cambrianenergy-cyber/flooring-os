@@ -1,30 +1,29 @@
+import { adminDb } from "@/lib/firebase/admin";
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
 
 export async function POST(req: Request) {
-  // DocuSign posts XML/JSON depending on Connect settings
-  const payload = await req.text();
+  const payload = await req.json();
 
-  // TODO: parse payload -> envelopeId + status + estimateId (recommended: customFields)
-  const envelopeId = "TODO";
-  const status = "completed"; // example
-  const estimateId = "TODO";
-  const workspaceId = "TODO";
+  // TODO: validate DocuSign webhook signature if enabled
+  const envelopeId = payload?.data?.envelopeId || payload?.envelopeId;
+  const status = payload?.data?.status || payload?.status;
 
-  const db = adminDb();
+  if (!envelopeId)
+    return NextResponse.json(
+      { ok: false, error: "Missing envelopeId" },
+      { status: 400 },
+    );
 
-  // update estimate contract status
-  await db.collection("estimates").doc(estimateId).set({
-    status: status === "completed" ? "signed" : undefined,
-    contract: {
-      provider: "docusign",
+  // You should store a mapping: envelopes/{envelopeId} -> { workspaceId, estimateId/jobId }
+  await adminDb.collection("envelopes").doc(envelopeId).set(
+    {
       envelopeId,
       status,
-      signedDocumentUrl: null,
+      updatedAt: new Date(),
+      raw: payload,
     },
-    signedAt: status === "completed" ? new Date() : null,
-    updatedAt: new Date(),
-  }, { merge: true });
+    { merge: true },
+  );
 
   return NextResponse.json({ ok: true });
 }

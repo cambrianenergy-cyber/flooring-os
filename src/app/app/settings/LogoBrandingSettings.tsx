@@ -1,9 +1,9 @@
 // DEV MODE: single-tenant until SaaS/multi-tenant is implemented
 "use client";
-import { useEffect, useMemo, useState } from "react";
 import { auth, db, storage } from "@/lib/firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { useEffect, useMemo, useState } from "react";
 
 type LogoPlacement =
   | "sidebar"
@@ -21,14 +21,31 @@ type BrandingSettings = {
   updatedByEmail?: string | null;
 };
 
-const PLACEMENT_OPTIONS: { key: LogoPlacement; label: string; desc: string }[] = [
-  { key: "sidebar", label: "Sidebar", desc: "Logo at top of left navigation" },
-  { key: "topbar", label: "Top Bar", desc: "Logo in header/top navigation" },
-  { key: "login", label: "Login Screen", desc: "Logo above login form" },
-  { key: "quotes", label: "Quotes", desc: "Include logo on quote view/export later" },
-  { key: "invoices", label: "Invoices", desc: "Include logo on invoices later" },
-  { key: "reports", label: "Reports", desc: "Include logo on KPI/report exports later" },
-];
+const PLACEMENT_OPTIONS: { key: LogoPlacement; label: string; desc: string }[] =
+  [
+    {
+      key: "sidebar",
+      label: "Sidebar",
+      desc: "Logo at top of left navigation",
+    },
+    { key: "topbar", label: "Top Bar", desc: "Logo in header/top navigation" },
+    { key: "login", label: "Login Screen", desc: "Logo above login form" },
+    {
+      key: "quotes",
+      label: "Quotes",
+      desc: "Include logo on quote view/export later",
+    },
+    {
+      key: "invoices",
+      label: "Invoices",
+      desc: "Include logo on invoices later",
+    },
+    {
+      key: "reports",
+      label: "Reports",
+      desc: "Include logo on KPI/report exports later",
+    },
+  ];
 
 // Returns tenantId from subdomain or fallback
 function getTenantId() {
@@ -43,16 +60,17 @@ function getTenantId() {
   return "square-flooring"; // fallback for dev/local
 }
 
-
 type LogoBrandingSettingsProps = {
   tenantId?: string;
 };
 
-export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBrandingSettingsProps) {
+export default function LogoBrandingSettings({
+  tenantId: propTenantId,
+}: LogoBrandingSettingsProps) {
   const tenantId = useMemo(() => propTenantId || getTenantId(), [propTenantId]);
   const brandingRef = useMemo(
     () => doc(db, "tenants", tenantId, "settings", "branding"),
-    [tenantId]
+    [tenantId],
   );
 
   const [existing, setExisting] = useState<BrandingSettings | null>(null);
@@ -87,7 +105,7 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
 
   function togglePlacement(p: LogoPlacement) {
     setPlacements((prev) =>
-      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p],
     );
   }
 
@@ -138,14 +156,17 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
           updatedBy: auth.currentUser?.uid ?? null,
           updatedByEmail: auth.currentUser?.email ?? null,
         },
-        { merge: true }
+        { merge: true },
       );
 
       setExisting((prev) => ({ ...(prev ?? {}), logoUrl, placements }));
       setFile(null);
       setStatus("✅ Logo uploaded and settings saved.");
     } catch (e: unknown) {
-      const errMsg = (e && typeof e === "object" && "message" in e) ? (e as { message?: string }).message : undefined;
+      const errMsg =
+        e && typeof e === "object" && "message" in e
+          ? (e as { message?: string }).message
+          : undefined;
       setStatus(`❌ Upload failed: ${errMsg ?? "Unknown error"}`);
     } finally {
       setSaving(false);
@@ -156,7 +177,8 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
     <div className="max-w-3xl text-[#e8edf7]">
       <h1 className="text-2xl font-semibold text-[#e8edf7]">Settings</h1>
       <p className="text-sm text-[#9fb2c9] mt-2">
-        Upload your Square Flooring Pro Suite logo and choose where it appears in the app.
+        Upload your Square Flooring Pro Suite logo and choose where it appears
+        in the app.
       </p>
 
       <div className="mt-6 grid gap-4">
@@ -171,19 +193,30 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
             <div className="w-20 h-20 rounded-lg border bg-[#0f1624] border-[#252f42] flex items-center justify-center overflow-hidden">
               {previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-full object-contain"
+                />
               ) : existing?.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={existing.logoUrl} alt="Current Logo" className="w-full h-full object-contain" />
+                <img
+                  src={existing.logoUrl}
+                  alt="Current Logo"
+                  className="w-full h-full object-contain"
+                />
               ) : (
-                <span className="text-xs text-gray-500">No logo</span>
+                <span className="text-xs text-muted">No logo</span>
               )}
             </div>
 
             <div className="flex-1">
               <div className="text-sm font-medium">Logo</div>
-              <div className="text-xs text-gray-500">
-                Stored at: <span className="font-mono">tenants/{tenantId}/branding/logo/...</span>
+              <div className="text-xs text-muted">
+                Stored at:{" "}
+                <span className="font-mono">
+                  tenants/{tenantId}/branding/logo/...
+                </span>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -200,7 +233,7 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
                 <button
                   onClick={saveLogo}
                   disabled={saving || !file}
-                  className="px-4 py-2 rounded-md bg-black text-white text-sm disabled:opacity-50"
+                  className="px-4 py-2 rounded-md bg-primary text-white text-sm disabled:opacity-50"
                 >
                   {saving ? "Uploading..." : "Upload & Save"}
                 </button>
@@ -211,8 +244,9 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
           {/* Placement options */}
           <div className="mt-6">
             <div className="text-sm font-medium">Logo Placement</div>
-            <p className="text-xs text-gray-500 mt-1">
-              Choose where the logo shows in the UI. (We’ll wire these placements into the layout next.)
+            <p className="text-xs text-muted mt-1">
+              Choose where the logo shows in the UI. (We’ll wire these
+              placements into the layout next.)
             </p>
 
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -228,7 +262,7 @@ export default function LogoBrandingSettings({ tenantId: propTenantId }: LogoBra
                     }`}
                   >
                     <div className="text-sm font-medium">{opt.label}</div>
-                    <div className="text-xs text-gray-500">{opt.desc}</div>
+                    <div className="text-xs text-muted">{opt.desc}</div>
                   </button>
                 );
               })}

@@ -1,7 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, getDocs, query, where, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    query,
+    serverTimestamp,
+    where,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 interface Props {
   jobId: string;
@@ -25,9 +34,12 @@ export default function DocumentPanel({ jobId }: Props) {
   useEffect(() => {
     async function load() {
       try {
-        const q = query(collection(db, "documents"), where("jobId", "==", jobId));
+        const q = query(
+          collection(db, "documents"),
+          where("jobId", "==", jobId),
+        );
         const snap = await getDocs(q);
-        setDocsList(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
+        setDocsList(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
       } catch (e: any) {
         setError(e?.message || "Failed to load documents");
       } finally {
@@ -50,7 +62,7 @@ export default function DocumentPanel({ jobId }: Props) {
         url,
         createdAt: serverTimestamp(),
       });
-      setDocsList(prev => [{ id: ref.id, name, url }, ...prev]);
+      setDocsList((prev) => [{ id: ref.id, name, url }, ...prev]);
       setName("");
       setUrl("");
     } catch (e: any) {
@@ -63,7 +75,7 @@ export default function DocumentPanel({ jobId }: Props) {
     setDeletingId(id);
     try {
       await deleteDoc(doc(db, "documents", id));
-      setDocsList(prev => prev.filter(d => d.id !== id));
+      setDocsList((prev) => prev.filter((d) => d.id !== id));
     } catch (e: any) {
       setError(e?.message || "Failed to delete document");
     } finally {
@@ -87,23 +99,40 @@ export default function DocumentPanel({ jobId }: Props) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <button onClick={handleAdd} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Add</button>
+        <button
+          onClick={handleAdd}
+          className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+        >
+          Add
+        </button>
         {error && <div className="text-xs text-red-500">{error}</div>}
       </div>
       <div className="mt-3 space-y-2 max-h-48 overflow-auto">
         {loading ? (
-          <div className="text-sm text-gray-500">Loading…</div>
+          <div className="text-sm text-muted">Loading…</div>
         ) : docsList.length === 0 ? (
-          <div className="text-sm text-gray-500">No documents yet.</div>
+          <div className="text-sm text-muted">No documents yet.</div>
         ) : (
           docsList.map((d) => (
-            <div key={d.id} className="border rounded px-2 py-1 text-sm flex justify-between items-center gap-2">
+            <div
+              key={d.id}
+              className="border rounded px-2 py-1 text-sm flex justify-between items-center gap-2"
+            >
               <div className="min-w-0 flex-1">
-                <div className="font-medium truncate" title={d.name}>{d.name}</div>
-                <div className="text-xs text-gray-500 break-all">{d.url}</div>
+                <div className="font-medium truncate" title={d.name}>
+                  {d.name}
+                </div>
+                <div className="text-xs text-muted break-all">{d.url}</div>
               </div>
               <div className="flex items-center gap-2">
-                <a className="text-blue-600 text-xs underline" href={d.url} target="_blank" rel="noreferrer">Open</a>
+                <a
+                  className="text-blue-600 text-xs underline"
+                  href={d.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open
+                </a>
                 <button
                   className="text-red-500 text-xs"
                   onClick={() => handleDelete(d.id)}

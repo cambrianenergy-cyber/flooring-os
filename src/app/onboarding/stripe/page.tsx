@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
-import { useRouter } from "next/navigation";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
-import OnboardingShell from "../OnboardingShell";
-import { FormCard, useOnboardingState } from "../../../components/onboarding/FormCard";
-import { useWorkspace } from "../../../lib/workspaceContext";
 import { authHeaders } from "@/lib/client/authHeader";
+import { doc, onSnapshot } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useState } from "react";
+import {
+    FormCard,
+    useOnboardingState,
+} from "../../../components/onboarding/FormCard";
+import { db } from "../../../lib/firebase";
+import { useWorkspace } from "../../../lib/workspaceContext";
+import OnboardingShell from "../OnboardingShell";
 
 type StripeStatus = {
   connected?: boolean;
@@ -36,7 +39,12 @@ function PresetButton({
     <button
       type="button"
       onClick={onClick}
-      className={["rounded-xl border px-4 py-2 text-sm", active ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",].join(" ")}
+      className={[
+        "rounded-xl border px-4 py-2 text-sm",
+        active
+          ? "border-slate-900 bg-slate-900 text-background"
+          : "border-slate-200 bg-background text-slate-700 hover:bg-slate-50 text-slate-900",
+      ].join(" ")}
     >
       {label}
     </button>
@@ -51,8 +59,11 @@ export default function StripePage() {
 
   const [stripe, setStripe] = useState<StripeStatus>({});
   const [state, dispatch] = useReducer(
-    (prev: { payoutRecipient: string; depositPresetKey: string }, next: Partial<{ payoutRecipient: string; depositPresetKey: string }>) => ({ ...prev, ...next }),
-    { payoutRecipient: "business_owner", depositPresetKey: "25" }
+    (
+      prev: { payoutRecipient: string; depositPresetKey: string },
+      next: Partial<{ payoutRecipient: string; depositPresetKey: string }>,
+    ) => ({ ...prev, ...next }),
+    { payoutRecipient: "business_owner", depositPresetKey: "25" },
   );
   const payoutRecipient = state.payoutRecipient;
   const depositPresetKey = state.depositPresetKey;
@@ -62,19 +73,25 @@ export default function StripePage() {
     if (!workspaceId) return;
     // assumes your server writes stripe status doc at: workspaces/{id}/stripe
     const ref = doc(db, "workspaces", workspaceId, "stripe");
-    return onSnapshot(ref, (snap) => setStripe(snap.exists() ? (snap.data() as StripeStatus) : {}));
+    return onSnapshot(ref, (snap) =>
+      setStripe(snap.exists() ? (snap.data() as StripeStatus) : {}),
+    );
   }, [workspaceId]);
 
   useEffect(() => {
     if (!data) return;
-    const s: { payoutRecipient?: string; depositPresetKey?: string } = data.stripeSetup || {};
+    const s: { payoutRecipient?: string; depositPresetKey?: string } =
+      data.stripeSetup || {};
     dispatch({
       payoutRecipient: s.payoutRecipient ?? "business_owner",
       depositPresetKey: s.depositPresetKey ?? "25",
     });
   }, [data]);
 
-  const depositPct = useMemo(() => DEPOSIT_PRESETS.find((d) => d.key === depositPresetKey)?.pct ?? 25, [depositPresetKey]);
+  const depositPct = useMemo(
+    () => DEPOSIT_PRESETS.find((d) => d.key === depositPresetKey)?.pct ?? 25,
+    [depositPresetKey],
+  );
 
   async function connectStripe() {
     if (!workspaceId) return;
@@ -124,15 +141,22 @@ export default function StripePage() {
   return (
     <OnboardingShell step={3}>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormCard title="Connect Stripe" subtitle="Enable deposits, invoices, and checkout links for estimates.">
+        <FormCard
+          title="Connect Stripe"
+          subtitle="Enable deposits, invoices, and checkout links for estimates."
+        >
           <div className="rounded-xl border p-4">
             <div className="text-sm font-semibold">Connection status</div>
             <div className="mt-2 text-sm text-slate-700">
               {stripe.connected ? "Connected ✅" : "Not connected ❌"}
             </div>
             <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-slate-600">
-              <div>Charges enabled: {String(Boolean(stripe.chargesEnabled))}</div>
-              <div>Payouts enabled: {String(Boolean(stripe.payoutsEnabled))}</div>
+              <div>
+                Charges enabled: {String(Boolean(stripe.chargesEnabled))}
+              </div>
+              <div>
+                Payouts enabled: {String(Boolean(stripe.payoutsEnabled))}
+              </div>
               {stripe.accountId && <div>Account: {stripe.accountId}</div>}
             </div>
 
@@ -141,7 +165,7 @@ export default function StripePage() {
                 type="button"
                 onClick={connectStripe}
                 disabled={busy}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm text-background disabled:opacity-50"
               >
                 {busy ? "Working…" : "Connect Stripe"}
               </button>
@@ -156,15 +180,21 @@ export default function StripePage() {
             </div>
 
             <div className="mt-3 text-xs text-slate-500">
-              Best practice: Use Stripe Connect so each workspace collects payments into their own account.
+              Best practice: Use Stripe Connect so each workspace collects
+              payments into their own account.
             </div>
           </div>
         </FormCard>
 
         <div className="space-y-6">
-          <FormCard title="Payouts & Deposit Policy" subtitle="Set defaults used in the estimate → checkout flow.">
+          <FormCard
+            title="Payouts & Deposit Policy"
+            subtitle="Set defaults used in the estimate → checkout flow."
+          >
             <div className="rounded-xl border p-4">
-              <div className="text-xs text-slate-500">Who receives payouts?</div>
+              <div className="text-xs text-slate-500">
+                Who receives payouts?
+              </div>
               <select
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={payoutRecipient}
@@ -177,7 +207,9 @@ export default function StripePage() {
             </div>
 
             <div className="mt-4 rounded-xl border p-4">
-              <div className="text-xs text-slate-500">Deposit policy quick picks</div>
+              <div className="text-xs text-slate-500">
+                Deposit policy quick picks
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {DEPOSIT_PRESETS.map((d) => (
                   <PresetButton
@@ -189,16 +221,22 @@ export default function StripePage() {
                 ))}
               </div>
               <div className="mt-2 text-xs text-slate-600">
-                Default deposit: <span className="font-semibold">{depositPct}%</span>
+                Default deposit:{" "}
+                <span className="font-semibold">{depositPct}%</span>
               </div>
             </div>
 
             <div className="mt-4 rounded-xl border p-4">
               <div className="text-sm font-semibold">Optional: Test charge</div>
               <div className="mt-1 text-xs text-slate-600">
-                After Stripe is connected, you can run a $1 test charge (dev mode).
+                After Stripe is connected, you can run a $1 test charge (dev
+                mode).
               </div>
-              <button type="button" disabled className="mt-3 rounded-xl border px-4 py-2 text-sm opacity-60">
+              <button
+                type="button"
+                disabled
+                className="mt-3 rounded-xl border px-4 py-2 text-sm opacity-60"
+              >
                 Test charge $1 (coming next)
               </button>
             </div>
@@ -207,9 +245,14 @@ export default function StripePage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => router.push("/onboarding/team")}>Back</button>
         <button
-          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-white disabled:opacity-50"
+          className="rounded-xl border px-4 py-2 text-sm"
+          onClick={() => router.push("/onboarding/team")}
+        >
+          Back
+        </button>
+        <button
+          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-background disabled:opacity-50"
           disabled={busy}
           onClick={() => save("/onboarding/pricing")}
         >

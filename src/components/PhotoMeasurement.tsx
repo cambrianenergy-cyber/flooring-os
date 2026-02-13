@@ -17,7 +17,9 @@ export default function PhotoMeasurement({
   onChange: (data: PhotoMeasurementData) => void;
 }) {
   const [photoUrl, setPhotoUrl] = useState<string>("");
-  const [measurements, setMeasurements] = useState<PhotoMeasurementData["measurements"]>([]);
+  const [measurements, setMeasurements] = useState<
+    PhotoMeasurementData["measurements"]
+  >([]);
   const [notes, setNotes] = useState("");
   const [adding, setAdding] = useState<{ x: number; y: number } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -29,7 +31,12 @@ export default function PhotoMeasurement({
     reader.onload = (ev) => {
       setPhotoUrl(ev.target?.result as string);
       setMeasurements([]);
-      onChange({ roomId, photoUrl: ev.target?.result as string, measurements: [], notes });
+      onChange({
+        roomId,
+        photoUrl: ev.target?.result as string,
+        measurements: [],
+        notes,
+      });
     };
     reader.readAsDataURL(file);
   }
@@ -121,8 +128,13 @@ export default function PhotoMeasurement({
               <button
                 className="px-2 py-0.5 bg-green-600 text-white text-xs rounded"
                 onClick={() => {
-                  const label = (document.getElementById("add-label") as HTMLInputElement)?.value;
-                  const value = Number((document.getElementById("add-value") as HTMLInputElement)?.value);
+                  const label = (
+                    document.getElementById("add-label") as HTMLInputElement
+                  )?.value;
+                  const value = Number(
+                    (document.getElementById("add-value") as HTMLInputElement)
+                      ?.value,
+                  );
                   if (label && !isNaN(value)) {
                     addMeasurement(label, value);
                   }
@@ -131,7 +143,7 @@ export default function PhotoMeasurement({
                 Add
               </button>
               <button
-                className="text-xs text-gray-500 mt-1"
+                className="text-xs text-muted mt-1"
                 onClick={() => setAdding(null)}
               >
                 Cancel
@@ -150,7 +162,7 @@ export default function PhotoMeasurement({
       </div>
       <ul className="mb-2">
         {measurements.map((m, i) => (
-          <li key={i} className="text-sm text-gray-700">
+          <li key={i} className="text-sm text-muted">
             {m.label}: {m.value} ft
           </li>
         ))}

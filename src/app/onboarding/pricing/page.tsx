@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
-import { useRouter } from "next/navigation";
-import OnboardingShell from "../OnboardingShell";
-import { FormCard, useOnboardingState } from "../../../components/onboarding/FormCard";
-import { useWorkspace } from "../../../lib/workspaceContext";
 import { authHeaders } from "@/lib/client/authHeader";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useState } from "react";
+import {
+    FormCard,
+    useOnboardingState,
+} from "../../../components/onboarding/FormCard";
+import { useWorkspace } from "../../../lib/workspaceContext";
+import OnboardingShell from "../OnboardingShell";
 
 type Rounding = "none" | "nearest_10" | "nearest_50";
 
@@ -14,19 +17,43 @@ const PRESETS = [
     key: "small_shop",
     name: "Small Shop",
     desc: "Lean overhead, fast quoting.",
-    values: { laborRate: 65, overheadPct: 12, marginPct: 25, markupPct: 15, depositPct: 25, minDeposit: 250, rounding: "nearest_10" as Rounding },
+    values: {
+      laborRate: 65,
+      overheadPct: 12,
+      marginPct: 25,
+      markupPct: 15,
+      depositPct: 25,
+      minDeposit: 250,
+      rounding: "nearest_10" as Rounding,
+    },
   },
   {
     key: "premium",
     name: "Premium",
     desc: "Higher margin for premium install experience.",
-    values: { laborRate: 85, overheadPct: 18, marginPct: 35, markupPct: 25, depositPct: 35, minDeposit: 500, rounding: "nearest_50" as Rounding },
+    values: {
+      laborRate: 85,
+      overheadPct: 18,
+      marginPct: 35,
+      markupPct: 25,
+      depositPct: 35,
+      minDeposit: 500,
+      rounding: "nearest_50" as Rounding,
+    },
   },
   {
     key: "commercial",
     name: "Commercial",
     desc: "Volume projects, structured pricing.",
-    values: { laborRate: 75, overheadPct: 15, marginPct: 22, markupPct: 12, depositPct: 20, minDeposit: 1000, rounding: "none" as Rounding },
+    values: {
+      laborRate: 75,
+      overheadPct: 15,
+      marginPct: 22,
+      markupPct: 12,
+      depositPct: 20,
+      minDeposit: 1000,
+      rounding: "none" as Rounding,
+    },
   },
 ] as const;
 
@@ -48,23 +75,26 @@ export default function PricingPage() {
   const { data } = useOnboardingState(workspaceId);
 
   const [state, dispatch] = useReducer(
-    (prev: {
-      laborRate: number;
-      overheadPct: number;
-      marginPct: number;
-      markupPct: number;
-      depositPct: number;
-      minDeposit: number;
-      rounding: Rounding;
-    }, next: Partial<{
-      laborRate: number;
-      overheadPct: number;
-      marginPct: number;
-      markupPct: number;
-      depositPct: number;
-      minDeposit: number;
-      rounding: Rounding;
-    }>) => ({ ...prev, ...next }),
+    (
+      prev: {
+        laborRate: number;
+        overheadPct: number;
+        marginPct: number;
+        markupPct: number;
+        depositPct: number;
+        minDeposit: number;
+        rounding: Rounding;
+      },
+      next: Partial<{
+        laborRate: number;
+        overheadPct: number;
+        marginPct: number;
+        markupPct: number;
+        depositPct: number;
+        minDeposit: number;
+        rounding: Rounding;
+      }>,
+    ) => ({ ...prev, ...next }),
     {
       laborRate: 75,
       overheadPct: 15,
@@ -73,7 +103,7 @@ export default function PricingPage() {
       depositPct: 25,
       minDeposit: 250,
       rounding: "nearest_10",
-    }
+    },
   );
   const laborRate = state.laborRate;
   const overheadPct = state.overheadPct;
@@ -134,7 +164,15 @@ export default function PricingPage() {
       total,
       deposit,
     };
-  }, [laborRate, overheadPct, marginPct, markupPct, depositPct, minDeposit, rounding]);
+  }, [
+    laborRate,
+    overheadPct,
+    marginPct,
+    markupPct,
+    depositPct,
+    minDeposit,
+    rounding,
+  ]);
 
   function applyPreset(key: string) {
     const p = PRESETS.find((x) => x.key === key);
@@ -180,7 +218,10 @@ export default function PricingPage() {
   return (
     <OnboardingShell step={4}>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormCard title="Pricing Settings" subtitle="Set your margin engine defaults. You can override per estimate later.">
+        <FormCard
+          title="Pricing Settings"
+          subtitle="Set your margin engine defaults. You can override per estimate later."
+        >
           <div className="rounded-xl border p-4">
             <div className="text-sm font-semibold">Preset profiles</div>
             <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -189,7 +230,7 @@ export default function PricingPage() {
                   key={p.key}
                   type="button"
                   onClick={() => applyPreset(p.key)}
-                  className="rounded-xl border px-3 py-2 text-left text-xs hover:bg-slate-50"
+                  className="rounded-xl border px-3 py-2 text-left text-xs hover:bg-slate-50 text-slate-900"
                 >
                   <div className="font-semibold">{p.name}</div>
                   <div className="text-slate-500">{p.desc}</div>
@@ -205,7 +246,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={laborRate}
-                onChange={(e) => dispatch({ laborRate: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ laborRate: Number(e.target.value) })
+                }
               />
             </div>
 
@@ -215,7 +258,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={overheadPct}
-                onChange={(e) => dispatch({ overheadPct: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ overheadPct: Number(e.target.value) })
+                }
               />
             </div>
 
@@ -225,7 +270,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={marginPct}
-                onChange={(e) => dispatch({ marginPct: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ marginPct: Number(e.target.value) })
+                }
               />
             </div>
 
@@ -235,7 +282,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={markupPct}
-                onChange={(e) => dispatch({ markupPct: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ markupPct: Number(e.target.value) })
+                }
               />
             </div>
 
@@ -245,7 +294,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={depositPct}
-                onChange={(e) => dispatch({ depositPct: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ depositPct: Number(e.target.value) })
+                }
               />
             </div>
 
@@ -255,7 +306,9 @@ export default function PricingPage() {
                 type="number"
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
                 value={minDeposit}
-                onChange={(e) => dispatch({ minDeposit: Number(e.target.value) })}
+                onChange={(e) =>
+                  dispatch({ minDeposit: Number(e.target.value) })
+                }
               />
             </div>
           </div>
@@ -265,7 +318,9 @@ export default function PricingPage() {
             <select
               className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
               value={rounding}
-              onChange={(e) => dispatch({ rounding: e.target.value as Rounding })}
+              onChange={(e) =>
+                dispatch({ rounding: e.target.value as Rounding })
+              }
             >
               <option value="none">None</option>
               <option value="nearest_10">Nearest $10</option>
@@ -274,10 +329,13 @@ export default function PricingPage() {
           </div>
         </FormCard>
 
-        <FormCard title="Live Preview" subtitle="Example job preview so you can feel the math.">
+        <FormCard
+          title="Live Preview"
+          subtitle="Example job preview so you can feel the math."
+        >
           <div className="rounded-xl border bg-slate-50 p-4 text-sm text-slate-700">
-            Example job: <span className="font-semibold">$3,200 materials</span> +{" "}
-            <span className="font-semibold">24 labor hours</span>
+            Example job: <span className="font-semibold">$3,200 materials</span>{" "}
+            + <span className="font-semibold">24 labor hours</span>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-2 text-sm">
@@ -297,26 +355,32 @@ export default function PricingPage() {
               <span>Profit</span>
               <span>${preview.profit.toFixed(0)}</span>
             </div>
-            <div className="flex justify-between rounded-xl border bg-white p-3 font-semibold">
+            <div className="flex justify-between rounded-xl border bg-background text-slate-900 p-3 font-semibold">
               <span>Total</span>
               <span>${preview.total.toFixed(0)}</span>
             </div>
-            <div className="flex justify-between rounded-xl border bg-white p-3 font-semibold">
+            <div className="flex justify-between rounded-xl border bg-background text-slate-900 p-3 font-semibold">
               <span>Deposit</span>
               <span>${preview.deposit.toFixed(0)}</span>
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl bg-white p-4 text-xs text-slate-500 border">
-            This same logic powers your estimate → checkout flow once Stripe is connected.
+          <div className="mt-4 rounded-xl bg-background p-4 text-xs text-slate-500 border">
+            This same logic powers your estimate → checkout flow once Stripe is
+            connected.
           </div>
         </FormCard>
       </div>
 
       <div className="flex items-center justify-between">
-        <button className="rounded-xl border px-4 py-2 text-sm" onClick={() => router.push("/onboarding/stripe")}>Back</button>
         <button
-          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-white disabled:opacity-50"
+          className="rounded-xl border px-4 py-2 text-sm"
+          onClick={() => router.push("/onboarding/stripe")}
+        >
+          Back
+        </button>
+        <button
+          className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm text-background disabled:opacity-50"
           disabled={busy}
           onClick={() => save("/onboarding/packs")}
         >

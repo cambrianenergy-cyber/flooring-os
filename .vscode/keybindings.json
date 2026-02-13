@@ -1,0 +1,16 @@
+[
+  {
+    "key": "ctrl+shift+f",
+    "command": "editor.action.formatDocument"
+  },
+  {
+    "key": "ctrl+shift+x",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Auto-fix All"
+  },
+  {
+    "key": "ctrl+shift+b",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Build"
+  }
+]

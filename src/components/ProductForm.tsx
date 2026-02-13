@@ -1,6 +1,6 @@
 "use client";
+import { addDoc, collection } from "firebase/firestore";
 import React, { useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import type { Product } from "../lib/types";
 
@@ -31,16 +31,17 @@ const initialState: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
 export default function ProductForm({ onCreated }: ProductFormProps) {
   const [form, setForm] = useState(initialState);
   const [useTieredPricing, setUseTieredPricing] = useState(
-    typeof initialState.sellPricePerSqft === 'object'
+    typeof initialState.sellPricePerSqft === "object",
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -69,30 +70,34 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
 
   // Handlers for tiered pricing
   const handleTierChange = (tier: string, value: number) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       sellPricePerSqft: {
-        ...(typeof prev.sellPricePerSqft === 'object' ? prev.sellPricePerSqft : {}),
-        [tier]: value
-      }
+        ...(typeof prev.sellPricePerSqft === "object"
+          ? prev.sellPricePerSqft
+          : {}),
+        [tier]: value,
+      },
     }));
   };
 
   const handleRemoveTier = (tier: string) => {
-    if (typeof form.sellPricePerSqft !== 'object') return;
+    if (typeof form.sellPricePerSqft !== "object") return;
     const { [tier]: _, ...rest } = form.sellPricePerSqft;
-    setForm(prev => ({ ...prev, sellPricePerSqft: rest }));
+    setForm((prev) => ({ ...prev, sellPricePerSqft: rest }));
   };
 
   const handleAddTier = () => {
-    const tier = prompt('Enter tier name (e.g., retail, wholesale):');
+    const tier = prompt("Enter tier name (e.g., retail, wholesale):");
     if (!tier) return;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       sellPricePerSqft: {
-        ...(typeof prev.sellPricePerSqft === 'object' ? prev.sellPricePerSqft : {}),
-        [tier]: 0
-      }
+        ...(typeof prev.sellPricePerSqft === "object"
+          ? prev.sellPricePerSqft
+          : {}),
+        [tier]: 0,
+      },
     }));
   };
 
@@ -100,37 +105,73 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
   const handlePricingModeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setUseTieredPricing(checked);
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      sellPricePerSqft: checked ? {} : 0
+      sellPricePerSqft: checked ? {} : 0,
     }));
   };
 
   return (
-    <form className="bg-white p-4 rounded shadow mb-6" onSubmit={handleSubmit}>
+    <form
+      className="bg-background text-slate-900 p-4 rounded shadow mb-6"
+      onSubmit={handleSubmit}
+    >
       <div className="mb-2">
         <label className="block text-sm font-medium">Name</label>
-        <input name="name" value={form.name} onChange={handleChange} className="border rounded px-2 py-1 w-full" required />
+        <input
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+          required
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Brand</label>
-        <input name="brand" value={form.brand} onChange={handleChange} className="border rounded px-2 py-1 w-full" required />
+        <input
+          name="brand"
+          value={form.brand}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+          required
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Line</label>
-        <input name="line" value={form.line} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+        <input
+          name="line"
+          value={form.line}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Color</label>
-        <input name="color" value={form.color} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+        <input
+          name="color"
+          value={form.color}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">SKU</label>
-        <input name="sku" value={form.sku} onChange={handleChange} className="border rounded px-2 py-1 w-full" required />
+        <input
+          name="sku"
+          value={form.sku}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+          required
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Material Type</label>
-        <select name="materialType" value={form.materialType} onChange={handleChange} className="border rounded px-2 py-1 w-full">
+        <select
+          name="materialType"
+          value={form.materialType}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        >
           <option value="LVP">LVP</option>
           <option value="Laminate">Laminate</option>
           <option value="Hardwood">Hardwood</option>
@@ -140,11 +181,24 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Unit</label>
-        <input name="unit" value={form.unit} onChange={handleChange} className="border rounded px-2 py-1 w-full" placeholder="e.g. sqft/carton, plank size" />
+        <input
+          name="unit"
+          value={form.unit}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+          placeholder="e.g. sqft/carton, plank size"
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Cost per Sqft</label>
-        <input name="costPerSqft" type="number" value={form.costPerSqft} onChange={handleNumberChange} className="border rounded px-2 py-1 w-full" required />
+        <input
+          name="costPerSqft"
+          type="number"
+          value={form.costPerSqft}
+          onChange={handleNumberChange}
+          className="border rounded px-2 py-1 w-full"
+          required
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Pricing Mode</label>
@@ -153,7 +207,9 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
             <input
               type="radio"
               checked={!useTieredPricing}
-              onChange={() => handlePricingModeChange({ target: { checked: false } } as any)}
+              onChange={() =>
+                handlePricingModeChange({ target: { checked: false } } as any)
+              }
             />
             Single Price
           </label>
@@ -161,7 +217,9 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
             <input
               type="radio"
               checked={useTieredPricing}
-              onChange={() => handlePricingModeChange({ target: { checked: true } } as any)}
+              onChange={() =>
+                handlePricingModeChange({ target: { checked: true } } as any)
+              }
             />
             Tiered Pricing
           </label>
@@ -169,11 +227,17 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
       </div>
       {!useTieredPricing ? (
         <div className="mb-2">
-          <label className="block text-sm font-medium">Sell Price per Sqft</label>
+          <label className="block text-sm font-medium">
+            Sell Price per Sqft
+          </label>
           <input
             name="sellPricePerSqft"
             type="number"
-            value={typeof form.sellPricePerSqft === 'number' ? form.sellPricePerSqft : ''}
+            value={
+              typeof form.sellPricePerSqft === "number"
+                ? form.sellPricePerSqft
+                : ""
+            }
             onChange={handleNumberChange}
             className="border rounded px-2 py-1 w-full"
             required
@@ -181,9 +245,12 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
         </div>
       ) : (
         <div className="mb-2">
-          <label className="block text-sm font-medium">Tiered Pricing (per Sqft)</label>
+          <label className="block text-sm font-medium">
+            Tiered Pricing (per Sqft)
+          </label>
           <div className="space-y-2">
-            {form.sellPricePerSqft && typeof form.sellPricePerSqft === 'object' &&
+            {form.sellPricePerSqft &&
+              typeof form.sellPricePerSqft === "object" &&
               Object.entries(form.sellPricePerSqft).map(([tier, value]) => (
                 <div key={tier} className="flex items-center gap-2">
                   <input
@@ -197,15 +264,25 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
                     value={value}
                     min={0}
                     step={0.01}
-                    onChange={e => handleTierChange(tier, Number(e.target.value))}
+                    onChange={(e) =>
+                      handleTierChange(tier, Number(e.target.value))
+                    }
                     className="border rounded px-2 py-1 w-32"
                   />
-                  <button type="button" className="text-red-600" onClick={() => handleRemoveTier(tier)}>
+                  <button
+                    type="button"
+                    className="text-red-600"
+                    onClick={() => handleRemoveTier(tier)}
+                  >
                     Remove
                   </button>
                 </div>
               ))}
-            <button type="button" className="bg-blue-600 text-white px-2 py-1 rounded mt-2" onClick={handleAddTier}>
+            <button
+              type="button"
+              className="bg-blue-600 text-white px-2 py-1 rounded mt-2"
+              onClick={handleAddTier}
+            >
               Add Tier
             </button>
           </div>
@@ -213,7 +290,12 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
       )}
       <div className="mb-2">
         <label className="block text-sm font-medium">Stock Status</label>
-        <select name="stockStatus" value={form.stockStatus} onChange={handleChange} className="border rounded px-2 py-1 w-full">
+        <select
+          name="stockStatus"
+          value={form.stockStatus}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        >
           <option value="in-stock">In Stock</option>
           <option value="out-of-stock">Out of Stock</option>
           <option value="limited">Limited</option>
@@ -221,37 +303,88 @@ export default function ProductForm({ onCreated }: ProductFormProps) {
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Spec Sheet PDF URL</label>
-        <input name="specSheetUrl" value={form.specSheetUrl} onChange={handleChange} className="border rounded px-2 py-1 w-full" placeholder="https://...pdf" />
+        <input
+          name="specSheetUrl"
+          value={form.specSheetUrl}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+          placeholder="https://...pdf"
+        />
       </div>
       <div className="mb-2">
-        <label className="block text-sm font-medium">Wear Layer / Thickness</label>
-        <input name="wearLayer" value={form.wearLayer} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+        <label className="block text-sm font-medium">
+          Wear Layer / Thickness
+        </label>
+        <input
+          name="wearLayer"
+          value={form.wearLayer}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Warranty Notes</label>
-        <input name="warrantyNotes" value={form.warrantyNotes} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+        <input
+          name="warrantyNotes"
+          value={form.warrantyNotes}
+          onChange={handleChange}
+          className="border rounded px-2 py-1 w-full"
+        />
       </div>
       <div className="mb-2">
-        <label className="block text-sm font-medium">Accessories (comma separated)</label>
-        <input name="accessories" value={(form.accessories || []).join(", ")} onChange={e => setForm(f => ({ ...f, accessories: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }))} className="border rounded px-2 py-1 w-full" />
+        <label className="block text-sm font-medium">
+          Accessories (comma separated)
+        </label>
+        <input
+          name="accessories"
+          value={(form.accessories || []).join(", ")}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              accessories: e.target.value
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+            }))
+          }
+          className="border rounded px-2 py-1 w-full"
+        />
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Waterproof</label>
-        <select name="waterproof" value={form.waterproof ? "yes" : "no"} onChange={e => setForm(f => ({ ...f, waterproof: e.target.value === "yes" }))} className="border rounded px-2 py-1 w-full">
+        <select
+          name="waterproof"
+          value={form.waterproof ? "yes" : "no"}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, waterproof: e.target.value === "yes" }))
+          }
+          className="border rounded px-2 py-1 w-full"
+        >
           <option value="no">No</option>
           <option value="yes">Yes</option>
         </select>
       </div>
       <div className="mb-2">
         <label className="block text-sm font-medium">Pet Friendly</label>
-        <select name="petFriendly" value={form.petFriendly ? "yes" : "no"} onChange={e => setForm(f => ({ ...f, petFriendly: e.target.value === "yes" }))} className="border rounded px-2 py-1 w-full">
+        <select
+          name="petFriendly"
+          value={form.petFriendly ? "yes" : "no"}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, petFriendly: e.target.value === "yes" }))
+          }
+          className="border rounded px-2 py-1 w-full"
+        >
           <option value="no">No</option>
           <option value="yes">Yes</option>
         </select>
       </div>
       {/* Image upload can be added later */}
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+        disabled={loading}
+      >
         {loading ? "Creating..." : "Create Product"}
       </button>
     </form>

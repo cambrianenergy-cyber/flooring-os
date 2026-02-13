@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+"use client";
 import { db } from "@/lib/firebase";
-import { resolvePlan } from "@/lib/plans";
+import { doc, onSnapshot } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 export function useWorkspacePlanStatus(workspaceId: string) {
-  const [plan, setPlan] = useState<{ key: string; status: string; currentPeriodEnd: Date | null } | null>(null);
+  const [plan, setPlan] = useState<{
+    key: string;
+    status: string;
+    currentPeriodEnd: Date | null;
+  } | null>(null);
   useEffect(() => {
     if (!workspaceId) return;
     const ref = doc(db, "workspaces", workspaceId);
@@ -13,7 +17,9 @@ export function useWorkspacePlanStatus(workspaceId: string) {
       setPlan({
         key: data?.plan?.key || "start",
         status: data?.plan?.status || "inactive",
-        currentPeriodEnd: data?.plan?.currentPeriodEnd ? new Date(data.plan.currentPeriodEnd.seconds * 1000) : null,
+        currentPeriodEnd: data?.plan?.currentPeriodEnd
+          ? new Date(data.plan.currentPeriodEnd.seconds * 1000)
+          : null,
       });
     });
     return () => unsub();

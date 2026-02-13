@@ -1,19 +1,25 @@
-import { NextResponse } from "next/server";
 import { requireWorkspaceMember } from "@/lib/authz";
-import { requireAiBudget, recordAiUsage } from "@/lib/metering";
-import { requireActiveBilling, getWorkspacePlan } from "@/lib/featureGate";
+import { getWorkspacePlan, requireActiveBilling } from "@/lib/featureGate";
+import { recordAiUsage, requireAiBudget } from "@/lib/metering";
+import { NextResponse } from "next/server";
 
-function getUid(req: Request) {
-  const uid = req.headers.get("x-debug-uid"); // replace with real auth
-  if (!uid) throw new Error("UNAUTHENTICATED");
-  return uid;
+import { getAuth } from "firebase-admin/auth";
+async function getUid(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    throw new Error("UNAUTHENTICATED");
+  const token = authHeader.split("Bearer ")[1];
+  const decoded = await getAuth().verifyIdToken(token);
+  return decoded.uid;
 }
 
-
-export async function POST(req: Request, context: { params: Promise<{ workspaceId: string }> }) {
+export async function POST(
+  req: Request,
+  context: { params: Promise<{ workspaceId: string }> },
+) {
   const { params } = context;
   const { workspaceId } = await params;
-  const uid = getUid(req);
+  const uid = await getUid(req);
 
   await requireWorkspaceMember(workspaceId, uid);
 
@@ -25,11 +31,19 @@ export async function POST(req: Request, context: { params: Promise<{ workspaceI
     await requireAiBudget(workspaceId);
   } catch (err: unknown) {
     let message = "AI metering error";
-    if (typeof err === "object" && err !== null && "message" in err && typeof (err as Error).message === "string") {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      typeof (err as Error).message === "string"
+    ) {
       message = (err as Error).message;
     }
     if (message === "AI_CREDITS_EXHAUSTED") {
-      return NextResponse.json({ error: "Upgrade for more AI" }, { status: 402 });
+      return NextResponse.json(
+        { error: "Upgrade for more AI" },
+        { status: 402 },
+      );
     }
     return NextResponse.json({ error: message }, { status: 403 });
   }

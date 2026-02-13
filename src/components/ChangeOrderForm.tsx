@@ -32,7 +32,7 @@ export default function ChangeOrderForm({ jobId, onChangeOrderSaved }: ChangeOrd
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 border rounded bg-white">
+    <div className="max-w-md mx-auto p-4 border rounded bg-background text-slate-900">
       <h2 className="text-lg font-semibold mb-2">Change Order</h2>
       <div className="mb-2">
         <label className="block mb-1">Description</label>

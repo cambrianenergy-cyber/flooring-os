@@ -1,44 +1,64 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
-import * as z from "zod";
+import admin from "firebase-admin";
 
-const SaveStepSchema = z.object({
-  currentStep: z.enum(["welcome", "company", "services", "goals", "team", "plan", "commit"]),
-  updatedAt: z.number(),
-  data: z.record(z.string(), z.unknown()).optional(),
-});
+function getAdmin() {
+  if (!admin.apps.length) {
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error(
+        `Missing Firebase Admin env vars. Have projectId=${!!projectId}, clientEmail=${!!clientEmail}, privateKey=${!!privateKey}`
+      );
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+    });
+  }
+  return admin;
+}
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const idToken = authHeader.replace("Bearer ", "");
-    const decoded = await getAuth().verifyIdToken(idToken);
-    const uid = decoded.uid;
-
     const body = await req.json();
-    const parsed = SaveStepSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid payload", details: parsed.error.issues }, { status: 400 });
-    }
+    console.log("BODY:", body);
+    console.log("ENV:", {
+      FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+      FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+      FIREBASE_PRIVATE_KEY: !!process.env.FIREBASE_PRIVATE_KEY
+    });
 
-    const db = getFirestore();
-    const intakeRef = db.collection("onboarding_intake").doc(uid);
-    const onboardingStateRef = db.doc(`workspaces/${uid}/onboarding/state`);
-    await Promise.all([
-      intakeRef.set({
-        ...parsed.data,
-        uid,
-      }, { merge: true }),
-      onboardingStateRef.set({
-        ...parsed.data,
-        uid,
-      }, { merge: true })
-    ]);
+    const workspaceId = body?.workspaceId;
+    const step = body?.step;
+    const data = body?.data;
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    if (!workspaceId) return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
+    if (!step) return NextResponse.json({ error: "step required" }, { status: 400 });
+    if (!data || typeof data !== "object")
+      return NextResponse.json({ error: "data object required" }, { status: 400 });
+
+    const a = getAdmin();
+    const db = a.firestore();
+
+    // ✅ valid doc path (even segments)
+    const ref = db.doc(`workspaces/${workspaceId}/onboarding/state`);
+
+    await ref.set(
+      {
+        [`step${String(step)}`]: data,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    console.error("save-step error:", err?.message || err, err?.stack || "");
+    return NextResponse.json(
+      { error: "Internal Server Error", detail: err?.message || String(err) },
+      { status: 500 }
+    );
   }
 }

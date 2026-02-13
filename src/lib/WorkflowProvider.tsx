@@ -1,18 +1,31 @@
 "use client";
-import React, { useState, useEffect, ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useFirestoreWorkflow } from "./useFirestoreWorkflow";
 import { WorkflowContext, WorkflowState, WorkflowStep } from "./workflow";
+import { useWorkspace } from "./workspaceContext";
 
 const defaultState: WorkflowState = {
   currentStep: "Lead",
   completedSteps: [],
 };
 
-// TODO: Replace with real workspaceId from context or props
-const workspaceId = "demo-workspace";
-
-export function WorkflowProvider({ children }: { children: ReactNode }) {
-  const { state: firestoreState, setState: saveState, loading } = useFirestoreWorkflow(workspaceId);
+export function WorkflowProvider({
+  children,
+  workspaceId: propWorkspaceId,
+}: {
+  children: ReactNode;
+  workspaceId?: string;
+}) {
+  // Prefer explicit prop, else use workspaceContext
+  const { workspace } = useWorkspace();
+  const workspaceId = propWorkspaceId || workspace?.id;
+  if (!workspaceId)
+    throw new Error("Missing workspaceId in WorkflowProvider context");
+  const {
+    state: firestoreState,
+    setState: saveState,
+    loading,
+  } = useFirestoreWorkflow(workspaceId);
   const [state, setState] = useState<WorkflowState>(defaultState);
 
   // Sync Firestore state to local state
@@ -27,7 +40,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
-  const setStep = (step: WorkflowStep) => setState((s) => ({ ...s, currentStep: step }));
+  const setStep = (step: WorkflowStep) =>
+    setState((s) => ({ ...s, currentStep: step }));
   const completeStep = (step: WorkflowStep) =>
     setState((s) => ({
       ...s,

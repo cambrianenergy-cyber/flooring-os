@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         actorRole = member.role;
       }
     }
-  } catch (err) {
+  } catch {
     // Not a member or not allowed
   }
   if (!allowed) {

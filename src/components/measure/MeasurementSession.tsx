@@ -1,17 +1,37 @@
 /**
  * Measurement Session Component
- * 
+ *
  * Manages active measurement sessions with laser device
  */
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { getFirestore, collection, addDoc, query, where, orderBy, Timestamp, onSnapshot, doc, updateDoc, getDocs, QuerySnapshot, QueryDocumentSnapshot, DocumentData, DocumentChange } from "firebase/firestore";
-import { MEASURE_COLLECTIONS } from "@/types/measureSchema";
-import type { MeasureSession, MeasureReading, MeasureDevice } from "@/types/measureSchema";
-import { LeicaDistoDevice } from "@/lib/leicaBLE";
 import type { LeicaReading } from "@/lib/leicaBLE";
+import { LeicaDistoDevice } from "@/lib/leicaBLE";
+import type {
+    MeasureDevice,
+    MeasureReading,
+    MeasureSession,
+} from "@/types/measureSchema";
+import { MEASURE_COLLECTIONS } from "@/types/measureSchema";
+import {
+    addDoc,
+    collection,
+    doc,
+    DocumentChange,
+    DocumentData,
+    getDocs,
+    getFirestore,
+    onSnapshot,
+    orderBy,
+    query,
+    QueryDocumentSnapshot,
+    QuerySnapshot,
+    Timestamp,
+    updateDoc,
+    where,
+} from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
 
 interface MeasurementSessionProps {
   workspaceId: string;
@@ -32,10 +52,16 @@ export function MeasurementSession({
   onSessionCreated,
   onReadingCaptured,
 }: MeasurementSessionProps) {
-  const [activeSession, setActiveSession] = useState<(MeasureSession & { id: string }) | null>(null);
-  const [device, setDevice] = useState<(MeasureDevice & { id: string }) | null>(null);
+  const [activeSession, setActiveSession] = useState<
+    (MeasureSession & { id: string }) | null
+  >(null);
+  const [device, setDevice] = useState<(MeasureDevice & { id: string }) | null>(
+    null,
+  );
   const [mode, setMode] = useState<MeasureMode>("assisted_draw");
-  const [readings, setReadings] = useState<(MeasureReading & { id: string })[]>([]);
+  const [readings, setReadings] = useState<(MeasureReading & { id: string })[]>(
+    [],
+  );
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leicaDevice, setLeicaDevice] = useState<LeicaDistoDevice | null>(null);
@@ -50,15 +76,15 @@ export function MeasurementSession({
         devicesRef,
         where("workspaceId", "==", workspaceId),
         where("status", "==", "active"),
-        orderBy("lastSeenAt", "desc")
+        orderBy("lastSeenAt", "desc"),
       );
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
         const docSnap = snapshot.docs[0];
         setDevice({
           id: docSnap.id,
-          ...docSnap.data()
-        } as (MeasureDevice & { id: string }));
+          ...docSnap.data(),
+        } as MeasureDevice & { id: string });
       }
     } catch (err) {
       console.error("Error loading device:", err);
@@ -80,9 +106,6 @@ export function MeasurementSession({
       setError("Failed to connect to laser device. Please try pairing again.");
     }
   }, [device]);
-
-
-
 
   // Load active device
   useEffect(() => {
@@ -112,33 +135,38 @@ export function MeasurementSession({
     const q = query(
       readingsRef,
       where("sessionId", "==", activeSession.id),
-      orderBy("capturedAt", "asc")
+      orderBy("capturedAt", "asc"),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-      const newReadings = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
-        id: doc.id,
-        ...doc.data()
-      })) as (MeasureReading & { id: string })[];
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const newReadings = snapshot.docs.map(
+          (doc: QueryDocumentSnapshot<DocumentData>) => ({
+            id: doc.id,
+            ...doc.data(),
+          }),
+        ) as (MeasureReading & { id: string })[];
 
-      setReadings(newReadings);
+        setReadings(newReadings);
 
-      // Notify parent of new readings
-      snapshot.docChanges().forEach((change: DocumentChange<DocumentData>) => {
-        if (change.type === "added") {
-          const reading = {
-            id: change.doc.id,
-            ...change.doc.data()
-          } as (MeasureReading & { id: string });
-          onReadingCaptured?.(reading);
-        }
-      });
-    });
+        // Notify parent of new readings
+        snapshot
+          .docChanges()
+          .forEach((change: DocumentChange<DocumentData>) => {
+            if (change.type === "added") {
+              const reading = {
+                id: change.doc.id,
+                ...change.doc.data(),
+              } as MeasureReading & { id: string };
+              onReadingCaptured?.(reading);
+            }
+          });
+      },
+    );
 
     return () => unsubscribe();
   }, [activeSession, db, onReadingCaptured]);
-
-
 
   async function startSession() {
     if (!device) {
@@ -238,7 +266,11 @@ export function MeasurementSession({
       } as Omit<MeasureReading, "id">);
 
       // Update session timestamp
-      const sessionRef = doc(db, MEASURE_COLLECTIONS.SESSIONS, activeSession.id);
+      const sessionRef = doc(
+        db,
+        MEASURE_COLLECTIONS.SESSIONS,
+        activeSession.id,
+      );
       await updateDoc(sessionRef, {
         updatedAt: Timestamp.now(),
       });
@@ -251,7 +283,9 @@ export function MeasurementSession({
       });
     } catch (err) {
       console.error("Error capturing reading:", err);
-      setError(err instanceof Error ? err.message : "Failed to capture reading");
+      setError(
+        err instanceof Error ? err.message : "Failed to capture reading",
+      );
     } finally {
       setCapturing(false);
     }
@@ -266,7 +300,11 @@ export function MeasurementSession({
         await leicaDevice.stopContinuous();
       }
 
-      const sessionRef = doc(db, MEASURE_COLLECTIONS.SESSIONS, activeSession.id);
+      const sessionRef = doc(
+        db,
+        MEASURE_COLLECTIONS.SESSIONS,
+        activeSession.id,
+      );
       await updateDoc(sessionRef, {
         status: "ended",
         endedAt: Timestamp.now(),
@@ -290,7 +328,11 @@ export function MeasurementSession({
         await leicaDevice.stopContinuous();
       }
 
-      const sessionRef = doc(db, MEASURE_COLLECTIONS.SESSIONS, activeSession.id);
+      const sessionRef = doc(
+        db,
+        MEASURE_COLLECTIONS.SESSIONS,
+        activeSession.id,
+      );
       await updateDoc(sessionRef, {
         status: "discarded",
         endedAt: Timestamp.now(),
@@ -301,7 +343,9 @@ export function MeasurementSession({
       setReadings([]);
     } catch (err) {
       console.error("Error discarding session:", err);
-      setError(err instanceof Error ? err.message : "Failed to discard session");
+      setError(
+        err instanceof Error ? err.message : "Failed to discard session",
+      );
     }
   }
 
@@ -315,8 +359,10 @@ export function MeasurementSession({
 
       {!activeSession ? (
         <div className="border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Start Measurement Session</h3>
-          
+          <h3 className="text-lg font-semibold mb-4">
+            Start Measurement Session
+          </h3>
+
           {device ? (
             <div className="space-y-4">
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -334,7 +380,9 @@ export function MeasurementSession({
                   onChange={(e) => setMode(e.target.value as MeasureMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="assisted_draw">Assisted Drawing (Point-to-Point)</option>
+                  <option value="assisted_draw">
+                    Assisted Drawing (Point-to-Point)
+                  </option>
                   <option value="walk_room">Walk Room (Automatic)</option>
                   <option value="rect_by_size">Rectangle by Dimensions</option>
                   <option value="manual">Manual Entry</option>
@@ -349,7 +397,7 @@ export function MeasurementSession({
               </button>
             </div>
           ) : (
-            <div className="text-center py-4 text-gray-500">
+            <div className="text-center py-4 text-muted">
               <p>No device connected.</p>
               <p className="text-sm">Please pair a Leica Disto device first.</p>
             </div>
@@ -360,9 +408,14 @@ export function MeasurementSession({
           <div className="border border-green-500 rounded-lg p-4 bg-green-50">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-lg font-semibold text-green-900">Session Active</h3>
+                <h3 className="text-lg font-semibold text-green-900">
+                  Session Active
+                </h3>
                 <p className="text-sm text-green-700">
-                  Mode: {mode.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  Mode:{" "}
+                  {mode
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -408,24 +461,25 @@ export function MeasurementSession({
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="text-sm font-medium text-gray-500">
+                      <div className="text-sm font-medium text-muted">
                         #{index + 1}
                       </div>
                       <div>
                         <p className="font-semibold text-lg">
                           {(reading.reading.value / 12).toFixed(2)} ft
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted">
                           {reading.capturedAt.toDate().toLocaleTimeString()}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">
-                        Signal: {reading.reading.signalQuality?.toFixed(0) || 100}%
+                      <p className="text-sm text-muted">
+                        Signal:{" "}
+                        {reading.reading.signalQuality?.toFixed(0) || 100}%
                       </p>
                       {reading.reading.tiltAngleDeg !== undefined && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted">
                           Tilt: {reading.reading.tiltAngleDeg.toFixed(1)}°
                         </p>
                       )}

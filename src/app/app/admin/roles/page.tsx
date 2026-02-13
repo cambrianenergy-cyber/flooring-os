@@ -1,9 +1,9 @@
 // src/app/app/admin/roles/page.tsx
 "use client";
-import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { ROLE_LABELS, UserRole } from "@/lib/roles";
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 export default function RolesAdminPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -42,7 +42,13 @@ export default function RolesAdminPage() {
           {users.map((u) => (
             <tr key={u.id} className="border-t">
               <td className="p-2 font-mono">{u.id}</td>
-              <td className="p-2">{u.role ? ROLE_LABELS[u.role as UserRole] : <span className="text-gray-400">None</span>}</td>
+              <td className="p-2">
+                {u.role ? (
+                  ROLE_LABELS[u.role as UserRole]
+                ) : (
+                  <span className="text-muted">None</span>
+                )}
+              </td>
               <td className="p-2">
                 <select
                   value={u.role || ""}
@@ -52,7 +58,9 @@ export default function RolesAdminPage() {
                 >
                   <option value="">Select…</option>
                   {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
                   ))}
                 </select>
               </td>

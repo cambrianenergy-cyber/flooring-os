@@ -1,41 +1,83 @@
 "use client";
-import React, { useState } from "react";
+import { db } from "@/lib/firebase";
 import { useWorkflow } from "@/lib/workflow";
+import { useWorkspace } from "@/lib/workspaceContext";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import OnboardingLayout from "../OnboardingLayout";
 import OnboardingProgress from "../OnboardingProgress";
-import { useRouter } from "next/navigation";
 
-const ROLES = ["Owner", "Admin", "Office Manager", "Estimator", "Sales", "Installer", "Other"];
+const ROLES = [
+  "Owner",
+  "Admin",
+  "Office Manager",
+  "Estimator",
+  "Sales",
+  "Installer",
+  "Other",
+];
 
 export default function TeamRolesStep() {
-  const [team, setTeam] = useState([
-    { email: "", role: ROLES[0] }
-  ]);
+  const { workspace } = useWorkspace();
+  const { setStep, completeStep } = useWorkflow();
+  const workspaceId = workspace?.id;
+  const [team, setTeam] = useState([{ email: "", role: ROLES[0] }]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleTeamChange = (idx: number, field: string, value: string) => {
-    setTeam(prev => prev.map((member, i) => i === idx ? { ...member, [field]: value } : member));
+    setTeam((prev) =>
+      prev.map((member, i) =>
+        i === idx ? { ...member, [field]: value } : member,
+      ),
+    );
   };
 
   const handleAddMember = () => {
-    setTeam(prev => [...prev, { email: "", role: ROLES[0] }]);
+    setTeam((prev) => [...prev, { email: "", role: ROLES[0] }]);
   };
 
   const handleRemoveMember = (idx: number) => {
-    setTeam(prev => prev.filter((_, i) => i !== idx));
+    setTeam((prev) => prev.filter((_, i) => i !== idx));
   };
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    const fetchTeam = async () => {
+      try {
+        const ref = doc(db, "workspaces", workspaceId, "onboarding", "state");
+        const snap = await getDoc(ref);
+        if (snap.exists() && snap.data().team) {
+          setTeam(snap.data().team);
+        }
+      } catch {}
+    };
+    fetchTeam();
+  }, [workspaceId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!workspaceId) {
+      setError("Workspace ID is missing.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const { setStep, completeStep } = useWorkflow();
+      await setDoc(
+        doc(db, "workspaces", workspaceId, "onboarding", "state"),
+        {
+          team,
+          step: "team-roles",
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
       setStep("Measure");
       completeStep("Measure");
-      router.push("/onboarding/3-stripe-connect");
+      router.push("/onboarding/step/3");
     } catch {
       setError("Failed to save. Please try again.");
     } finally {
@@ -45,19 +87,23 @@ export default function TeamRolesStep() {
 
   return (
     <OnboardingLayout step={2}>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 mt-10">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-slate-100">
+        <div className="max-w-lg w-full bg-background text-slate-900 rounded-xl shadow-lg p-8 mt-10">
           <h1 className="text-3xl font-bold mb-4 text-center">Team & Roles</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             {team.map((member, idx) => (
               <div key={idx} className="flex gap-2 items-end mb-2">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Email
+                  </label>
                   <input
                     type="email"
                     className="input input-bordered w-full"
                     value={member.email}
-                    onChange={e => handleTeamChange(idx, "email", e.target.value)}
+                    onChange={(e) =>
+                      handleTeamChange(idx, "email", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -66,21 +112,33 @@ export default function TeamRolesStep() {
                   <select
                     className="select select-bordered"
                     value={member.role}
-                    onChange={e => handleTeamChange(idx, "role", e.target.value)}
+                    onChange={(e) =>
+                      handleTeamChange(idx, "role", e.target.value)
+                    }
                   >
-                    {ROLES.map(role => (
-                      <option key={role} value={role}>{role}</option>
+                    {ROLES.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
                     ))}
                   </select>
                 </div>
                 {team.length > 1 && (
-                  <button type="button" className="btn btn-error btn-xs ml-2" onClick={() => handleRemoveMember(idx)}>
+                  <button
+                    type="button"
+                    className="btn btn-error btn-xs ml-2"
+                    onClick={() => handleRemoveMember(idx)}
+                  >
                     Remove
                   </button>
                 )}
               </div>
             ))}
-            <button type="button" className="btn btn-secondary w-full" onClick={handleAddMember}>
+            <button
+              type="button"
+              className="btn btn-secondary w-full"
+              onClick={handleAddMember}
+            >
               + Add Team Member
             </button>
             {error && <div className="text-red-500 text-sm">{error}</div>}
@@ -92,8 +150,10 @@ export default function TeamRolesStep() {
               {loading ? "Saving..." : "Continue"}
             </button>
           </form>
-          <OnboardingProgress currentStep={3} totalSteps={9} />
-          <span className="text-xs text-muted block text-center mt-2">Step 3 of 9</span>
+          <OnboardingProgress currentStep={3} />
+          <span className="text-xs text-gray-600 block text-center mt-2">
+            Step 3 of 9
+          </span>
         </div>
       </div>
     </OnboardingLayout>

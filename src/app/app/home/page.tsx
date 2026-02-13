@@ -1,409 +1,270 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useCallback } from "react";
-// Stripe Connect Onboarding Panel
-function StripeConnectPanel({ workspaceId }: { workspaceId: string }) {
-  const [status, setStatus] = useState<string>("loading");
-  const [chargesEnabled, setChargesEnabled] = useState(false);
-  const [payoutsEnabled, setPayoutsEnabled] = useState(false);
-  // Removed unused: detailsSubmitted, accountId, connectUrl
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recipient, setRecipient] = useState<string>("");
-  const [depositPolicy, setDepositPolicy] = useState<string>("");
-  const [testChargeStatus, setTestChargeStatus] = useState<string>("");
+import { ONBOARDING_STEPS } from "@/config/onboardingSteps";
+import React, { useEffect, useState } from "react";
 
-  // Fetch Stripe Connect status
-  const fetchStatus = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/stripe-connect`);
-      const data = await res.json();
-      setStatus(data.status);
-      setChargesEnabled(!!data.charges_enabled);
-      setPayoutsEnabled(!!data.payouts_enabled);
-    } catch {
-      setError("Failed to fetch Stripe status");
-    } finally {
-      setLoading(false);
-    }
-  }, [workspaceId]);
-
-  useEffect(() => { fetchStatus(); }, [fetchStatus]);
-
-  // Create Stripe Connect onboarding link
-  const handleConnect = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/stripe-connect`, { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError("Failed to get Stripe Connect link");
-      }
-    } catch {
-      setError("Failed to connect Stripe");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Test charge (optional)
-  const handleTestCharge = async () => {
-    setTestChargeStatus("Charging...");
-    // TODO: Implement backend endpoint for test charge
-    setTimeout(() => setTestChargeStatus("Success! (simulated)"), 1200);
-  };
-
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="font-bold text-blue-800">Stripe Connect (Company Payments)</div>
-        <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 ml-2">{status === "active" ? "Connected" : status === "pending" ? "Pending" : "Not Connected"}</span>
-      </div>
-      <div className="mb-2 text-sm text-blue-900">
-        {chargesEnabled && payoutsEnabled ? (
-          <span>Charges and payouts are enabled for your company.</span>
-        ) : (
-          <span>Connect your Stripe account to enable company payments and payouts.</span>
-        )}
-      </div>
-      <div className="flex gap-4 items-center mb-2">
-        <button
-          className="bg-blue-700 text-white px-4 py-2 rounded font-semibold hover:bg-blue-800 transition disabled:opacity-50"
-          onClick={handleConnect}
-          disabled={loading || status === "active"}
-        >
-          {status === "active" ? "Stripe Connected" : loading ? "Connecting..." : "Connect Stripe"}
-        </button>
-        {error && <span className="text-red-600 text-xs ml-2">{error}</span>}
-      </div>
-      <div className="mb-2">
-        <label className="block text-xs font-semibold mb-1">Who receives payouts?</label>
-        <select
-          className="border rounded px-2 py-1 bg-white text-blue-900 border-blue-200"
-          value={recipient}
-          onChange={e => setRecipient(e.target.value)}
-        >
-          <option value="">Select...</option>
-          <option value="company">Company</option>
-          <option value="owner">Owner</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-      <div className="mb-2">
-        <label className="block text-xs font-semibold mb-1">Deposit Policy</label>
-        <div className="flex gap-2">
-          {["No deposit", "10% upfront", "50% upfront", "Full upfront"].map(opt => (
-            <button
-              key={opt}
-              type="button"
-              className={`px-2 py-1 rounded border text-xs ${depositPolicy === opt ? 'bg-blue-200 border-blue-500 text-blue-900' : 'bg-white border-blue-200 text-blue-700'}`}
-              onClick={() => setDepositPolicy(opt)}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="mb-2">
-        <button
-          className="bg-green-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-green-700 transition"
-          onClick={handleTestCharge}
-          type="button"
-        >Test charge $1</button>
-        {testChargeStatus && <span className="ml-2 text-green-700 text-xs">{testChargeStatus}</span>}
-      </div>
-    </div>
-  );
-}
-// Helper to check onboarding status from Firestore (client-side)
-async function fetchOnboardingStatus() {
-  try {
-    const { getAuth } = await import("firebase/auth");
-    const { getFirestore, doc, getDoc } = await import("firebase/firestore");
-    const auth = getAuth();
-    const db = getFirestore();
-    const user = auth.currentUser;
-    if (!user) return false;
-    const wsRef = doc(db, `workspaces/${user.uid}`);
-    const snap = await getDoc(wsRef);
-    return snap.exists() && snap.data().onboardingComplete === true;
-  } catch {
-    return false;
-  }
-}
-
-import Image from "next/image";
-
-
-
-
-
+type FieldOption = { label: string; value: string };
+type FieldBase = {
+  name: string;
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+};
+type TextField = FieldBase & { type: "text" | "textarea" };
+type SelectField = FieldBase & { type: "select"; options: FieldOption[] };
+type MultiSelectField = FieldBase & {
+  type: "multiselect";
+  options: FieldOption[];
+};
+type Field = TextField | SelectField | MultiSelectField;
+type Step = { label: string; fields: Field[] };
+type FormState = Record<string, string | string[]>;
 
 export default function HomePage() {
-  // Onboarding state
-  const [step, setStep] = useState(1);
-  const totalSteps = 9;
-  const [accountType, setAccountType] = useState("");
-  const [companyType, setCompanyType] = useState("");
-  const [goals, setGoals] = useState<string[]>([]);
-  const [volume, setVolume] = useState("");
-  const [setupPath, setSetupPath] = useState("recommended");
-  const [skipped, setSkipped] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [formState, setFormState] = useState<FormState>({});
+  const [loading, setLoading] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string>("");
 
-  // Get workspaceId from Firebase user
   useEffect(() => {
     (async () => {
       const { getAuth } = await import("firebase/auth");
       const auth = getAuth();
       const user = auth.currentUser;
-      if (user) setWorkspaceId(user.uid);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setWorkspaceId(user.uid);
+      setLoading(false);
     })();
   }, []);
-  // onboardingComplete state is not used in the UI, so remove it for now to fix the error
 
-  // Check onboarding status on mount
   useEffect(() => {
-    fetchOnboardingStatus().then((complete) => {
-      // Set cookie for backend enforcement
-      if (complete) {
-        document.cookie = "onboardingComplete=true; path=/; max-age=31536000";
-      } else {
-        document.cookie = "onboardingComplete=false; path=/; max-age=31536000";
+    if (!workspaceId) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/onboarding?workspaceId=${encodeURIComponent(workspaceId)}`,
+          {
+            cache: "no-store",
+          },
+        );
+        const json = await res.json();
+        if (res.ok) {
+          setFormState(json?.data ?? {});
+          if (typeof json?.data?.progress?.currentStep === "number") {
+            setStepIndex(
+              Math.max(
+                0,
+                Math.min(
+                  ONBOARDING_STEPS.length - 1,
+                  json.data.progress.currentStep,
+                ),
+              ),
+            );
+          }
+        }
+      } finally {
       }
+    })();
+  }, [workspaceId]);
+
+  const updateField = (name: string, value: string | string[]) => {
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const saveStep = async (nextStepIndex: number) => {
+    if (!workspaceId) throw new Error("No workspaceId");
+    const patch = {
+      ...formState,
+      progress: {
+        currentStep: nextStepIndex,
+        updatedAtMs: Date.now(),
+      },
+    };
+    const res = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId, data: patch }),
     });
-  }, []);
-
-  // Options
-  const accountTypes = ["Owner", "Admin", "Office Manager"];
-  const companyTypes = ["Residential", "Commercial", "Both"];
-  const goalOptions = [
-    "Win more bids",
-    "Faster estimates",
-    "Job tracking",
-    "Payments",
-    "AI help"
-  ];
-  const volumeOptions = [
-    "0–10 jobs",
-    "10–25 jobs",
-    "25–50 jobs",
-    "50+ jobs"
-  ];
-
-
-  // Handlers
-  const handleGoalToggle = (goal: string) => {
-    setGoals((prev) => prev.includes(goal) ? prev.filter(g => g !== goal) : [...prev, goal]);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error || "Save failed");
   };
 
-  // Save onboarding data to API and alert
-  type OnboardingData = {
-    step?: string;
-    persona?: string;
-    companyType?: string;
-    goals?: string[];
-    monthlyVolume?: string;
-    setupMode?: string;
-    skipped?: boolean;
-  };
-  const saveOnboarding = async (data: OnboardingData) => {
-    try {
-      const { getAuth } = await import("firebase/auth");
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (!user) throw new Error("Not signed in");
-      const workspaceId = user.uid;
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId, data }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Save failed");
-      alert("Onboarding saved!");
-    } catch (err) {
-      const error = err instanceof Error ? err : { message: String(err) };
-      alert("Onboarding save failed: " + (error.message || err));
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const isLast = stepIndex === ONBOARDING_STEPS.length - 1;
+    const nextIndex = isLast ? stepIndex : stepIndex + 1;
+    await saveStep(nextIndex);
+    if (!isLast) setStepIndex(nextIndex);
   };
 
-  const handleStart = async () => {
-    // Save onboarding data and advance step
-    await saveOnboarding({
-      step: "welcome",
-      persona: accountType,
-      companyType,
-      goals,
-      monthlyVolume: volume,
-      setupMode: setupPath,
-    });
-    setStep(2);
-  };
+  const step = ONBOARDING_STEPS[stepIndex];
+  const fields = step?.fields ?? [];
+  const hasMissingRequired = fields.some(
+    (f) =>
+      "required" in f &&
+      Boolean(f.required) &&
+      (formState[f.name] === undefined || formState[f.name] === ""),
+  );
 
+  if (loading) {
+    return <div className="text-muted p-6">Loading…</div>;
+  }
 
-  const handleSkip = async () => {
-    await saveOnboarding({ skipped: true });
-    setSkipped(true);
-  };
-
-  // Premium Welcome UI
   return (
     <div className="max-w-xl mx-auto py-12">
-      {/* Onboarding status banner (always visible for demo/testing) */}
-      <div className="bg-yellow-200 border-l-4 border-yellow-600 text-yellow-900 p-4 rounded mb-6 text-center font-bold text-lg shadow">
-        <span className="block mb-1">🚧 Onboarding Incomplete</span>
-        <span className="block text-sm font-normal">You must finish onboarding to unlock all features and access your company dashboard.</span>
-        <a href="/onboarding/1" className="inline-block mt-2 underline text-yellow-800 font-semibold">Continue onboarding &rarr;</a>
-      </div>
-      {/* Logo/Hero */}
-      <div className="flex flex-col items-center mb-8">
-        <Image
-          src="/logo192.png"
-          alt="Square Flooring Logo"
-          width={80}
-          height={80}
-          className="rounded-full border border-blue-200 object-cover mb-4"
-          priority
-        />
-        <h1 className="text-3xl font-bold text-blue-800 mb-2 text-center">Welcome to Square Flooring OS</h1>
-        <p className="text-gray-600 text-center text-lg">We’re going to set up your company OS</p>
-      </div>
-
-      {/* Progress Indicator */}
-      <div className="flex items-center justify-center mb-6">
-        <span className="text-blue-700 font-semibold">Step {step} of {totalSteps}</span>
-        <span className="mx-2">•</span>
-        <span className="text-gray-500 text-sm">~6 minutes to finish setup</span>
-      </div>
-
-      {/* Stripe Connect Panel (Company Payments) */}
-      {workspaceId && <StripeConnectPanel workspaceId={workspaceId} />}
-
-      {/* Onboarding Form: All Premium Features */}
-      <div className="bg-white rounded-lg shadow p-8 mb-8">
-        <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">Let&apos;s set up your company OS</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Account Type */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Account Type</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={accountType}
-              onChange={e => setAccountType(e.target.value)}
-            >
-              <option value="">Select...</option>
-              {accountTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          {/* Company Type */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Company Type</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={companyType}
-              onChange={e => setCompanyType(e.target.value)}
-            >
-              <option value="">Select...</option>
-              {companyTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          {/* Primary Goals */}
-          <div className="md:col-span-2">
-            <label className="block text-gray-700 font-medium mb-1">Primary Goals</label>
-            <div className="flex flex-wrap gap-2">
-              {goalOptions.map(goal => (
-                <button
-                  key={goal}
-                  type="button"
-                  className={`px-3 py-1 rounded border text-sm ${goals.includes(goal) ? 'bg-blue-100 border-blue-400 text-blue-800' : 'bg-gray-100 border-gray-300 text-gray-700'}`}
-                  onClick={() => handleGoalToggle(goal)}
-                >
-                  {goal}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Expected Monthly Volume */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Expected Monthly Volume</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={volume}
-              onChange={e => setVolume(e.target.value)}
-            >
-              <option value="">Select...</option>
-              {volumeOptions.map(v => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
-          </div>
-          {/* Guided Setup Path */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Setup Path</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-1">
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-2xl bg-slate-900/80 backdrop-blur border border-slate-700 p-6 shadow-xl"
+      >
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          {step?.label}
+        </h2>
+        <div className="space-y-4">
+          {fields.map((field) => {
+            const value = formState[field.name] ?? "";
+            if (field.type === "textarea") {
+              return (
+                <div key={field.name}>
+                  <label className="block text-sm font-semibold text-muted mb-2">
+                    {field.label}
+                  </label>
+                  <textarea
+                    value={value}
+                    onChange={(e) => updateField(field.name, e.target.value)}
+                    className="w-full min-h-[110px] rounded-lg bg-slate-950/60 border border-slate-700 text-white p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={
+                      "placeholder" in field &&
+                      typeof field.placeholder === "string"
+                        ? field.placeholder
+                        : ""
+                    }
+                  />
+                </div>
+              );
+            }
+            if (field.type === "select") {
+              return (
+                <div key={field.name}>
+                  <label className="block text-sm font-semibold text-muted mb-2">
+                    {field.label}
+                  </label>
+                  <select
+                    value={value}
+                    onChange={(e) => updateField(field.name, e.target.value)}
+                    className="w-full rounded-lg bg-slate-950/60 border border-slate-700 text-white p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="" disabled>
+                      Select…
+                    </option>
+                    {"options" in field && Array.isArray(field.options)
+                      ? field.options.map((opt) =>
+                          typeof opt === "object" &&
+                          "value" in opt &&
+                          "label" in opt ? (
+                            <option
+                              key={String(opt.value)}
+                              value={String(opt.value)}
+                            >
+                              {opt.label}
+                            </option>
+                          ) : null,
+                        )
+                      : null}
+                  </select>
+                </div>
+              );
+            }
+            if (field.type === "multiselect") {
+              const arr = Array.isArray(formState[field.name])
+                ? (formState[field.name] as string[])
+                : [];
+              return (
+                <div key={field.name}>
+                  <label className="block text-sm font-semibold text-muted mb-2">
+                    {field.label}
+                  </label>
+                  <div className="space-y-2 rounded-lg bg-slate-950/40 border border-slate-700 p-3">
+                    {"options" in field && Array.isArray(field.options)
+                      ? field.options.map((opt) => {
+                          if (
+                            typeof opt === "object" &&
+                            "value" in opt &&
+                            "label" in opt
+                          ) {
+                            const checked = arr.includes(String(opt.value));
+                            return (
+                              <label
+                                key={String(opt.value)}
+                                className="flex items-center gap-2 text-muted"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    const next = checked
+                                      ? arr.filter(
+                                          (v) => v !== String(opt.value),
+                                        )
+                                      : [...arr, String(opt.value)];
+                                    updateField(field.name, next);
+                                  }}
+                                />
+                                {opt.label}
+                              </label>
+                            );
+                          }
+                          return null;
+                        })
+                      : null}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={field.name}>
+                <label className="block text-sm font-semibold text-muted mb-2">
+                  {field.label}
+                </label>
                 <input
-                  type="radio"
-                  name="setupPath"
-                  value="recommended"
-                  checked={setupPath === "recommended"}
-                  onChange={() => setSetupPath("recommended")}
+                  value={value}
+                  onChange={(e) => updateField(field.name, e.target.value)}
+                  className="w-full rounded-lg bg-slate-950/60 border border-slate-700 text-white p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={
+                    "placeholder" in field &&
+                    typeof field.placeholder === "string"
+                      ? field.placeholder
+                      : ""
+                  }
                 />
-                <span>Recommended</span>
-              </label>
-              <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name="setupPath"
-                  value="advanced"
-                  checked={setupPath === "advanced"}
-                  onChange={() => setSetupPath("advanced")}
-                />
-                <span>Advanced</span>
-              </label>
-            </div>
-          </div>
+              </div>
+            );
+          })}
         </div>
-        {/* Progress, Time Estimate, CTA, Skip, Micro Trust */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8">
-          <div className="text-blue-700 font-semibold">Step {step} of {totalSteps}</div>
-          <div className="text-gray-500 text-sm">~6 minutes to finish setup</div>
-          <div className="flex gap-4">
+        <div className="flex justify-between mt-8">
+          {stepIndex > 0 ? (
             <button
-              className="bg-blue-700 text-white px-6 py-2 rounded font-semibold hover:bg-blue-800 transition"
-              onClick={handleStart}
-              disabled={!accountType || !companyType || goals.length === 0 || !volume}
-            >
-              Start Setup
-            </button>
-            <button
-              className="text-gray-500 underline text-sm"
-              onClick={handleSkip}
               type="button"
+              className="px-6 py-2 rounded-lg bg-slate-800 text-muted border border-slate-700 hover:bg-slate-700"
+              onClick={() => setStepIndex((prev) => prev - 1)}
             >
-              Skip (not recommended)
+              Back
             </button>
-          </div>
+          ) : (
+            <div />
+          )}
+          <button
+            type="submit"
+            className="px-8 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-500 disabled:opacity-60"
+            disabled={hasMissingRequired}
+          >
+            {stepIndex === ONBOARDING_STEPS.length - 1
+              ? "Finish"
+              : "Save & Continue"}
+          </button>
         </div>
-        <div className="text-xs text-gray-400 mt-3 text-center">You can change everything later.</div>
-      </div>
-
-      {/* Optionally, show a skipped message */}
-      {skipped && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-yellow-900 font-semibold text-center">
-          You skipped onboarding. You can finish setup anytime from your dashboard.
-        </div>
-      )}
+      </form>
     </div>
   );
 }

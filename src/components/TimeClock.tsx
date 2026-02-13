@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
+import { useState } from "react";
 
 interface TimeClockProps {
   userId: string;
@@ -25,7 +25,11 @@ export default function TimeClock({ userId, onClockEvent }: TimeClockProps) {
       setClockedIn(true);
       setLoading(false);
       if (onClockEvent) onClockEvent();
-      window.dispatchEvent(new CustomEvent("toast", { detail: { type: "success", message: "Clocked in!" } }));
+      window.dispatchEvent(
+        new CustomEvent("toast", {
+          detail: { type: "success", message: "Clocked in!" },
+        }),
+      );
     } catch (e: any) {
       setLoading(false);
       setError(e.message || "Failed to clock in.");
@@ -44,7 +48,11 @@ export default function TimeClock({ userId, onClockEvent }: TimeClockProps) {
       setClockedIn(false);
       setLoading(false);
       if (onClockEvent) onClockEvent();
-      window.dispatchEvent(new CustomEvent("toast", { detail: { type: "success", message: "Clocked out!" } }));
+      window.dispatchEvent(
+        new CustomEvent("toast", {
+          detail: { type: "success", message: "Clocked out!" },
+        }),
+      );
     } catch (e: any) {
       setLoading(false);
       setError(e.message || "Failed to clock out.");
@@ -52,15 +60,23 @@ export default function TimeClock({ userId, onClockEvent }: TimeClockProps) {
   };
 
   return (
-    <div className="max-w-xs mx-auto p-4 border rounded bg-white mt-8">
+    <div className="max-w-xs mx-auto p-4 border rounded bg-background text-slate-900 mt-8">
       <h2 className="text-lg font-semibold mb-2">Time Clock</h2>
       <div className="mb-2">
         {clockedIn ? (
-          <button onClick={handleClockOut} className="bg-red-600 text-white px-4 py-2 rounded" disabled={loading}>
+          <button
+            onClick={handleClockOut}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+            disabled={loading}
+          >
             Clock Out
           </button>
         ) : (
-          <button onClick={handleClockIn} className="bg-green-600 text-white px-4 py-2 rounded" disabled={loading}>
+          <button
+            onClick={handleClockIn}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+            disabled={loading}
+          >
             Clock In
           </button>
         )}

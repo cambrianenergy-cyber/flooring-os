@@ -1,29 +1,30 @@
-
-import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { requireRole, requireWorkspaceMember } from "@/lib/authz";
 import { getOrCreateStripeCustomer, stripe } from "@/lib/billing";
-import { requireWorkspaceMember, requireRole } from "@/lib/authz";
+import { adminDb } from "@/lib/firebaseAdmin";
+import { NextResponse } from "next/server";
 
-
-function getUid(req: Request) {
-  const uid = req.headers.get("x-debug-uid"); // replace with real Firebase auth verification
-  if (!uid) throw new Error("UNAUTHENTICATED");
-  return uid;
+import { getAuth } from "firebase-admin/auth";
+async function getUid(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    throw new Error("UNAUTHENTICATED");
+  const token = authHeader.split("Bearer ")[1];
+  const decoded = await getAuth().verifyIdToken(token);
+  return decoded.uid;
 }
 
 export async function POST(req: Request) {
   try {
-    const uid = getUid(req);
+    const uid = await getUid(req);
     const { workspaceId, planKey } = await req.json();
 
     const member = await requireWorkspaceMember(workspaceId, uid);
     requireRole(member.role, ["owner", "admin"]);
 
-
     // Find the active Stripe price with matching planKey in metadata or lookup_key
     const prices = await stripe.prices.list({ limit: 100, active: true });
     const price = prices.data.find(
-      (p) => p.metadata?.plan_key === planKey || p.lookup_key === planKey
+      (p) => p.metadata?.plan_key === planKey || p.lookup_key === planKey,
     );
     if (!price) return new NextResponse("Invalid planKey", { status: 400 });
     const priceId = price.id;
@@ -50,6 +51,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Checkout error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    );
   }
 }

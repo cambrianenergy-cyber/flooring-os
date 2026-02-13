@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import {
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  QuerySnapshot,
-  QueryDocumentSnapshot,
-  Timestamp,
-  where,
-  limit,
-  getDocs,
+    addDoc,
+    collection,
+    getDocs,
+    limit,
+    onSnapshot,
+    orderBy,
+    query,
+    QueryDocumentSnapshot,
+    QuerySnapshot,
+    serverTimestamp,
+    Timestamp,
+    where,
 } from "firebase/firestore";
+import { useEffect, useRef, useState } from "react";
 
 type Appt = {
   id: string;
@@ -27,18 +27,28 @@ type Appt = {
 };
 
 const TIME_OPTIONS = [
-  "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-  "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM",
-  "6:00 PM", "7:00 PM", "8:00 PM",
+  "8:00 AM",
+  "9:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "1:00 PM",
+  "2:00 PM",
+  "3:00 PM",
+  "4:00 PM",
+  "5:00 PM",
+  "6:00 PM",
+  "7:00 PM",
+  "8:00 PM",
 ];
 
-import WorkflowStepper from "../../../components/WorkflowStepper";
 import { useRouter } from "next/navigation";
+import WorkflowStepper from "../../../components/WorkflowStepper";
 export default function AppointmentsPage() {
-      const router = useRouter();
-    // --- Usage metering state ---
-    const [usagePercent, setUsagePercent] = useState<number | null>(null);
-    const usageCap = 100; // Example cap, replace with real value if needed
+  const router = useRouter();
+  // --- Usage metering state ---
+  const [usagePercent, setUsagePercent] = useState<number | null>(null);
+  const usageCap = 100; // Example cap, replace with real value if needed
   const [items, setItems] = useState<Appt[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -52,27 +62,29 @@ export default function AppointmentsPage() {
   const dateInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-        // Simulate fetching usage (replace with real backend call if needed)
-        // For demo: usage = number of appointments this month / cap
-        const fetchUsage = async () => {
-          // Count appointments for this user/workspace this month
-          const now = new Date();
-          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-          const qUsage = query(
-            collection(db, "appointments"),
-            where("workspaceId", "==", FOUNDER_WORKSPACE_ID),
-            where("createdBy", "==", user?.uid || ""),
-            where("startTime", ">=", monthStart)
-          );
-          try {
-            const snap = await getDocs(qUsage);
-            // Example: cap is 100 per month
-            setUsagePercent(Math.min(1, snap.size / usageCap));
-          } catch {
-            setUsagePercent(null);
-          }
-        };
-        if (user && user.uid) fetchUsage();
+    // Simulate fetching usage (replace with real backend call if needed)
+    // For demo: usage = number of appointments this month / cap
+    const fetchUsage = async () => {
+      // Count appointments for this user/workspace this month
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .slice(0, 10);
+      const qUsage = query(
+        collection(db, "appointments"),
+        where("workspaceId", "==", FOUNDER_WORKSPACE_ID),
+        where("createdBy", "==", user?.uid || ""),
+        where("startTime", ">=", monthStart),
+      );
+      try {
+        const snap = await getDocs(qUsage);
+        // Example: cap is 100 per month
+        setUsagePercent(Math.min(1, snap.size / usageCap));
+      } catch {
+        setUsagePercent(null);
+      }
+    };
+    if (user && user.uid) fetchUsage();
     // Listen for auth state changes to update user
     const unsubAuth = auth.onAuthStateChanged(setUser);
 
@@ -94,7 +106,7 @@ export default function AppointmentsPage() {
       where("createdBy", "==", uid),
       where("startTime", ">=", todayIso),
       orderBy("startTime", "asc"),
-      limit(50)
+      limit(50),
     );
     const unsub = onSnapshot(
       q,
@@ -132,7 +144,7 @@ export default function AppointmentsPage() {
       (err) => {
         setError("Error fetching appointments: " + (err?.message || err));
         setLoading(false);
-      }
+      },
     );
     return () => {
       unsub();
@@ -141,14 +153,21 @@ export default function AppointmentsPage() {
   }, [user, usageCap]);
 
   async function createAppointment() {
-        // Block creation if at 100% usage
-        if (usagePercent !== null && usagePercent >= 1) {
-          setError("You have reached your appointment limit. Please upgrade your plan to continue.");
-          return;
-        }
-    const chosenTime = startTimeOption === "other" ? customTime.trim() : startTimeOption;
+    // Block creation if at 100% usage
+    if (usagePercent !== null && usagePercent >= 1) {
+      setError(
+        "You have reached your appointment limit. Please upgrade your plan to continue.",
+      );
+      return;
+    }
+    const chosenTime =
+      startTimeOption === "other" ? customTime.trim() : startTimeOption;
     if (!customerName || !phone || !fullAddress || !startDate || !chosenTime) {
-      if (!window.confirm("Some fields are missing or invalid. Do you want to proceed?")) {
+      if (
+        !window.confirm(
+          "Some fields are missing or invalid. Do you want to proceed?",
+        )
+      ) {
         return;
       }
     }
@@ -225,99 +244,128 @@ export default function AppointmentsPage() {
         </div>
       )}
       {loading ? (
-        <div className="flex items-center justify-center h-32 text-gray-500">Loading appointments…</div>
+        <div className="flex items-center justify-center h-32 text-muted">
+          Loading appointments…
+        </div>
       ) : (
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="border rounded-lg p-4 bg-white">
-          <h2 className="font-medium">New Appointment</h2>
+          <div className="border rounded-lg p-4 bg-background text-slate-900">
+            <h2 className="font-medium">New Appointment</h2>
 
-          <label className="block text-xs text-gray-500 mt-3">Customer Name</label>
-          <input className="w-full border rounded-md p-2 text-sm mt-1"
-            value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-
-          <label className="block text-xs text-gray-500 mt-3">Phone (any format)</label>
-          <input className="w-full border rounded-md p-2 text-sm mt-1"
-            value={phone} onChange={(e) => setPhone(e.target.value)} />
-
-          <label className="block text-xs text-gray-500 mt-3">Full Address</label>
-          <input className="w-full border rounded-md p-2 text-sm mt-1"
-            value={fullAddress} onChange={(e) => setFullAddress(e.target.value)}
-            placeholder="123 Main St, Dallas, TX 75201" />
-
-          <label className="block text-xs text-gray-500 mt-3">Scheduled Date</label>
-          <div className="flex items-center gap-2 mt-1">
+            <label className="block text-xs text-muted mt-3">
+              Customer Name
+            </label>
             <input
-              ref={dateInputRef}
-              type="date"
-              className="w-full border rounded-md p-2 text-sm"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full border rounded-md p-2 text-sm mt-1"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
             />
+
+            <label className="block text-xs text-muted mt-3">
+              Phone (any format)
+            </label>
+            <input
+              className="w-full border rounded-md p-2 text-sm mt-1"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+
+            <label className="block text-xs text-muted mt-3">
+              Full Address
+            </label>
+            <input
+              className="w-full border rounded-md p-2 text-sm mt-1"
+              value={fullAddress}
+              onChange={(e) => setFullAddress(e.target.value)}
+              placeholder="123 Main St, Dallas, TX 75201"
+            />
+
+            <label className="block text-xs text-muted mt-3">
+              Scheduled Date
+            </label>
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                ref={dateInputRef}
+                type="date"
+                className="w-full border rounded-md p-2 text-sm"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  dateInputRef.current?.showPicker
+                    ? dateInputRef.current.showPicker()
+                    : dateInputRef.current?.focus()
+                }
+                className="border rounded-md px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100"
+              >
+                Calendar
+              </button>
+            </div>
+
+            <label className="block text-xs text-muted mt-3">Time</label>
+            <div className="mt-1 flex flex-col gap-2">
+              <select
+                className="w-full border rounded-md p-2 text-sm"
+                value={startTimeOption}
+                onChange={(e) => setStartTimeOption(e.target.value)}
+              >
+                <option value="">Select time</option>
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+                <option value="other">Other…</option>
+              </select>
+              {startTimeOption === "other" && (
+                <input
+                  className="w-full border rounded-md p-2 text-sm"
+                  value={customTime}
+                  onChange={(e) => setCustomTime(e.target.value)}
+                  placeholder="Enter custom time (e.g., 6:30 PM)"
+                />
+              )}
+            </div>
+
             <button
-              type="button"
-              onClick={() => dateInputRef.current?.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current?.focus()}
-              className="border rounded-md px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100"
+              onClick={createAppointment}
+              className="mt-4 bg-primary text-white rounded-md px-4 py-2 text-sm"
             >
-              Calendar
+              Create Appointment
             </button>
           </div>
 
-          <label className="block text-xs text-gray-500 mt-3">Time</label>
-          <div className="mt-1 flex flex-col gap-2">
-            <select
-              className="w-full border rounded-md p-2 text-sm"
-              value={startTimeOption}
-              onChange={(e) => setStartTimeOption(e.target.value)}
-            >
-              <option value="">Select time</option>
-              {TIME_OPTIONS.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-              <option value="other">Other…</option>
-            </select>
-            {startTimeOption === "other" && (
-              <input
-                className="w-full border rounded-md p-2 text-sm"
-                value={customTime}
-                onChange={(e) => setCustomTime(e.target.value)}
-                placeholder="Enter custom time (e.g., 6:30 PM)"
-              />
-            )}
-          </div>
+          <div className="border rounded-lg p-4 bg-background text-slate-900">
+            <h2 className="font-medium">Today / Upcoming</h2>
+            <div className="mt-3 space-y-2 max-h-[55vh] overflow-auto">
+              {items.length === 0 ? (
+                <p className="text-sm text-muted">No appointments yet.</p>
+              ) : (
+                items.map((a) => (
+                  <div key={a.id} className="border rounded-md p-3">
+                    <div className="text-sm font-medium">{a.customerName}</div>
+                    <div className="text-xs text-gray-600">{a.phone}</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {a.startTime}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {a.fullAddress}
+                    </div>
 
-          <button
-            onClick={createAppointment}
-            className="mt-4 bg-black text-white rounded-md px-4 py-2 text-sm"
-          >
-            Create Appointment
-          </button>
-        </div>
-
-        <div className="border rounded-lg p-4 bg-white">
-          <h2 className="font-medium">Today / Upcoming</h2>
-          <div className="mt-3 space-y-2 max-h-[55vh] overflow-auto">
-            {items.length === 0 ? (
-              <p className="text-sm text-gray-500">No appointments yet.</p>
-            ) : (
-              items.map((a) => (
-                <div key={a.id} className="border rounded-md p-3">
-                  <div className="text-sm font-medium">{a.customerName}</div>
-                  <div className="text-xs text-gray-600">{a.phone}</div>
-                  <div className="text-xs text-gray-600 mt-1">{a.startTime}</div>
-                  <div className="text-xs text-gray-600 mt-1">{a.fullAddress}</div>
-
-                  <button
-                    onClick={() => navigateTo(a.fullAddress)}
-                    className="mt-3 border rounded-md px-3 py-2 text-sm hover:bg-gray-50"
-                  >
-                    Navigate
-                  </button>
-                </div>
-              ))
-            )}
+                    <button
+                      onClick={() => navigateTo(a.fullAddress)}
+                      className="mt-3 border rounded-md px-3 py-2 text-sm hover:bg-gray-50"
+                    >
+                      Navigate
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   );

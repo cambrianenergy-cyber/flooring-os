@@ -21,19 +21,18 @@ export default function Welcome() {
         {/* Animated Introduction or Video Placeholder */}
         <div className="mb-6 flex justify-center">
           <div className="w-full max-w-md aspect-video bg-muted flex items-center justify-center rounded-lg border">
-            <span className="text-muted-foreground text-lg">[Animated intro or video goes here]</span>
+            <span className="text-muted-foreground text-lg">
+              [Animated intro or video goes here]
+            </span>
           </div>
         </div>
-        <OnboardingProgress
-          currentStep={1}
-          totalSteps={10}
-          stepLabels={["Welcome","Company Profile","Service Area","Team Setup","Trade Types","Pricing Defaults","Lead Intake","Estimate Workflow","Catalog","Integrations"]}
-        />
+        <OnboardingProgress currentStep={1} />
         <h1 className="text-2xl font-bold mb-2 text-accent">
           Welcome{userName ? `, ${userName}` : ""}!
         </h1>
         <p className="mb-4 text-foreground">
-          Let&apos;s get your workspace set up. Completing onboarding unlocks all features and ensures a smooth experience.
+          Let&apos;s get your workspace set up. Completing onboarding unlocks
+          all features and ensures a smooth experience.
         </p>
         <ul className="mb-4 list-disc pl-6 text-sm text-muted-foreground">
           <li>Access all contractor tools</li>
@@ -45,7 +44,7 @@ export default function Welcome() {
           <select
             className="border rounded p-2 w-full"
             value={language}
-            onChange={e => setLanguage(e.target.value)}
+            onChange={(e) => setLanguage(e.target.value)}
           >
             <option value="en">English</option>
             <option value="es">Spanish</option>
@@ -91,7 +90,12 @@ export default function Welcome() {
           </button>
         </div>
         <div className="mb-4 text-xs text-muted-foreground">
-          <strong>Privacy Notice:</strong> Your data is securely stored and used only to personalize your experience. <a href="/privacy" className="underline text-accent">Learn more</a>.
+          <strong>Privacy Notice:</strong> Your data is securely stored and used
+          only to personalize your experience.{" "}
+          <a href="/privacy" className="underline text-accent">
+            Learn more
+          </a>
+          .
         </div>
         <button
           className="w-full bg-accent text-background rounded-md p-3 font-bold mt-2"
@@ -101,7 +105,10 @@ export default function Welcome() {
         </button>
         {/* Optional: Add animation or video here */}
         <div className="mt-6 text-center text-xs text-muted-foreground">
-          Need help? <a href="/help" className="underline text-accent">Contact support</a>
+          Need help?{" "}
+          <a href="/help" className="underline text-accent">
+            Contact support
+          </a>
         </div>
       </div>
     </main>

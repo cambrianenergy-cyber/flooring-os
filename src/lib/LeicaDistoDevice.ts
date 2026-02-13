@@ -303,10 +303,34 @@ export class LeicaDistoDevice extends AbstractLaserDevice {
   private async fetchDeviceInfo(): Promise<void> {
     try {
       const battery = await this.getBatteryLevel();
+
+      // Read firmware version
+      let firmwareVersion = "unknown";
+      let serialNumber = "unknown";
+      try {
+        if (this.controlChar && typeof this.controlChar === "object" && 'writeValue' in this.controlChar && 'readValue' in this.controlChar) {
+          // Send GET_FIRMWARE command
+          await this.sendCommand(LeicaCommand.GET_FIRMWARE);
+          // Wait a short time for device to respond
+          await new Promise(res => setTimeout(res, 200));
+          // Read response
+          const value = await (this.controlChar as BluetoothRemoteGATTCharacteristic).readValue();
+          // Parse firmware version and serial number from response
+          // (Assume ASCII string, e.g. "FW:1.23;SN:12345678")
+          const text = new TextDecoder().decode(value.buffer);
+          const fwMatch = text.match(/FW:([\w.\-]+)/);
+          const snMatch = text.match(/SN:([\w\-]+)/);
+          if (fwMatch) firmwareVersion = fwMatch[1];
+          if (snMatch) serialNumber = snMatch[1];
+        }
+      } catch {
+        // fallback to unknown
+      }
+
       this.deviceInfo = {
         model: this.model as "D810" | "D3",
-        firmwareVersion: "1.0", // TODO: read from device
-        serialNumber: "SN-000000", // TODO: read from device
+        firmwareVersion,
+        serialNumber,
         batteryLevel: battery || 0,
       };
     } catch (error) {

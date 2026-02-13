@@ -78,14 +78,14 @@ export function useOnboardingState(workspaceId: string) {
 import React from "react";
 
 interface FormCardProps {
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export function FormCard({ title, subtitle, children }: FormCardProps) {
   return (
-    <div className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
+    <div className="mb-6 rounded-xl border bg-page-surface p-6 shadow-sm">
       <div className="mb-2 text-lg font-semibold">{title}</div>
       {subtitle && <div className="mb-4 text-sm text-slate-500">{subtitle}</div>}
       {children}

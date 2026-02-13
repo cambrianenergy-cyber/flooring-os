@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
 import { useWorkflow } from "@/lib/workflow";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import OnboardingLayout from "../OnboardingLayout";
 import OnboardingProgress from "../OnboardingProgress";
-import { useRouter } from "next/navigation";
 
 export default function DataImportStep() {
   const [csv, setCsv] = useState<File | null>(null);
@@ -38,37 +38,45 @@ export default function DataImportStep() {
 
   return (
     <OnboardingLayout step={7}>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 mt-10">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-slate-100">
+        <div className="max-w-lg w-full bg-background text-slate-900 rounded-xl shadow-lg p-8 mt-10">
           <h1 className="text-3xl font-bold mb-4 text-center">Data Import</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Import CSV</label>
+              <label className="block text-sm font-medium mb-1">
+                Import CSV
+              </label>
               <input
                 type="file"
                 accept=".csv"
                 className="file-input file-input-bordered w-full"
                 onChange={handleCsvChange}
               />
-              {csv && <span className="text-xs text-muted">Selected: {csv.name}</span>}
+              {csv && (
+                <span className="text-xs text-muted">Selected: {csv.name}</span>
+              )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Connect Calendar</label>
+              <label className="block text-sm font-medium mb-1">
+                Connect Calendar
+              </label>
               <input
                 type="checkbox"
                 className="checkbox"
                 checked={calendar}
-                onChange={e => setCalendar(e.target.checked)}
+                onChange={(e) => setCalendar(e.target.checked)}
               />
               <span className="ml-2">Sync with Google Calendar</span>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Import from Email</label>
+              <label className="block text-sm font-medium mb-1">
+                Import from Email
+              </label>
               <input
                 type="email"
                 className="input input-bordered w-full"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
               />
             </div>
@@ -81,8 +89,10 @@ export default function DataImportStep() {
               {loading ? "Saving..." : "Continue"}
             </button>
           </form>
-          <OnboardingProgress currentStep={8} totalSteps={9} />
-          <span className="text-xs text-muted block text-center mt-2">Step 8 of 9</span>
+          <OnboardingProgress currentStep={8} />
+          <span className="text-xs text-gray-600 block text-center mt-2">
+            Step 8 of 9
+          </span>
         </div>
       </div>
     </OnboardingLayout>

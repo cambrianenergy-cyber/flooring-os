@@ -1,35 +1,35 @@
 /**
  * Tier Gate Components
- * 
+ *
  * Display locked features with "Upgrade to unlock" prompts
  * NOT just hidden (that builds resentment)
- * 
+ *
  * Design: Clear explanation of business value + path to upgrade
  */
 
 "use client";
 
-import React from "react";
-import {
-  useCanAccessFeature,
-  useFeatureUpgrade,
-  useTier,
-  useTierComparison,
-} from "@/lib/useTier";
 import type { FeatureAccessMatrix, TierLevel } from "@/lib/pricingTiers";
 import { TIER_DEFINITIONS } from "@/lib/pricingTiers";
+import {
+    useCanAccessFeature,
+    useFeatureUpgrade,
+    useTier,
+    useTierComparison,
+} from "@/lib/useTier";
+import React from "react";
 
 /**
  * <TierGate>
  * Conditional rendering based on tier access
- * 
+ *
  * Shows "Upgrade" button if locked, renders children if allowed
- * 
+ *
  * Usage:
  *   <TierGate feature="rollCutOptimizer">
  *     <RollCutOptimizer />
  *   </TierGate>
- *   
+ *
  *   <TierGate
  *     feature="rollCutOptimizer"
  *     fallback={<LockedMessage />}
@@ -99,9 +99,7 @@ function TierGateDefault({
     <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-blue-900">
-            🔒 {featureName}
-          </h3>
+          <h3 className="font-semibold text-blue-900">🔒 {featureName}</h3>
 
           {showReason && (
             <p className="mt-2 text-sm text-blue-800">
@@ -110,27 +108,32 @@ function TierGateDefault({
           )}
 
           {isTierUpgrade && (
-            <div className="mt-4 rounded bg-white p-3">
+            <div className="mt-4 rounded bg-background text-slate-900 p-3">
               <p className="text-sm font-semibold text-blue-900">
                 Upgrade to {TIER_DEFINITIONS[upgrade.toTier].displayName}
               </p>
-              <p className="mt-1 text-sm text-gray-600">
-                ${upgrade.toTier === "enterprise" ? "2,500+" : upgrade.monthlyCost}/month
+              <p className="mt-1 text-sm text-muted">
+                $
+                {upgrade.toTier === "enterprise"
+                  ? "2,500+"
+                  : upgrade.monthlyCost}
+                /month
               </p>
               {upgrade.savings && upgrade.savings > 0 && (
                 <p className="mt-1 text-xs text-green-600">
-                  Includes all features from {TIER_DEFINITIONS[tier].displayName}, plus more
+                  Includes all features from{" "}
+                  {TIER_DEFINITIONS[tier].displayName}, plus more
                 </p>
               )}
             </div>
           )}
 
           {isAddon && (
-            <div className="mt-4 rounded bg-white p-3">
+            <div className="mt-4 rounded bg-background text-slate-900 p-3">
               <p className="text-sm font-semibold text-blue-900">
                 Add {getAddonName(upgrade.addonId)}
               </p>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-muted">
                 Only ${upgrade.monthlyCost}/month
               </p>
               <p className="mt-1 text-xs text-green-600">
@@ -170,7 +173,8 @@ export function TierUpgradePrompt({
   const upgrade = useFeatureUpgrade(feature);
   const { tier } = useTier();
   // Always call hooks in the same order
-  const targetTier = upgrade && upgrade.type === "tier-upgrade" ? upgrade.toTier : "essentials";
+  const targetTier =
+    upgrade && upgrade.type === "tier-upgrade" ? upgrade.toTier : "essentials";
   const comparison = useTierComparison(targetTier);
   if (!upgrade || upgrade.type !== "tier-upgrade") {
     return null;
@@ -178,15 +182,13 @@ export function TierUpgradePrompt({
   const targetDef = TIER_DEFINITIONS[targetTier];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white p-8 shadow-2xl">
+    <div className="fixed inset-0 flex items-center justify-center bg-overlay/50 p-4">
+      <div className="w-full max-w-2xl rounded-xl bg-white text-slate-900 p-8 shadow-2xl">
         <h2 className="text-2xl font-bold text-gray-900">
           Unlock {formatFeatureName(feature)}
         </h2>
 
-        <p className="mt-2 text-gray-600">
-          {getFeatureDescription(feature)}
-        </p>
+        <p className="mt-2 text-muted">{getFeatureDescription(feature)}</p>
 
         <div className="mt-6 grid grid-cols-2 gap-6">
           {/* Current tier */}
@@ -195,7 +197,7 @@ export function TierUpgradePrompt({
             <p className="mt-2 text-2xl font-bold text-blue-600">
               {TIER_DEFINITIONS[tier].displayName}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               ${TIER_DEFINITIONS[tier].monthlyPrice}/month
             </p>
           </div>
@@ -206,8 +208,9 @@ export function TierUpgradePrompt({
             <p className="mt-2 text-2xl font-bold text-green-600">
               {targetDef.displayName}
             </p>
-            <p className="text-sm text-gray-600">
-              ${targetDef.monthlyPrice}/month (+ ${upgrade.monthlyCost - TIER_DEFINITIONS[tier].monthlyPrice}/month)
+            <p className="text-sm text-muted">
+              ${targetDef.monthlyPrice}/month (+ $
+              {upgrade.monthlyCost - TIER_DEFINITIONS[tier].monthlyPrice}/month)
             </p>
           </div>
         </div>
@@ -215,10 +218,15 @@ export function TierUpgradePrompt({
         {/* New features in target tier */}
         {comparison.newFeatures.length > 0 && (
           <div className="mt-6">
-            <p className="font-semibold text-gray-900">Plus, you&apos;ll get:</p>
+            <p className="font-semibold text-gray-900">
+              Plus, you&apos;ll get:
+            </p>
             <ul className="mt-3 space-y-2">
               {comparison.newFeatures.slice(0, 5).map((feature) => (
-                <li key={feature} className="flex items-center gap-2 text-sm text-gray-700">
+                <li
+                  key={feature}
+                  className="flex items-center gap-2 text-sm text-gray-700"
+                >
                   <span className="text-green-600">✓</span>
                   {formatFeatureName(feature)}
                 </li>
@@ -259,7 +267,7 @@ export function TierUpgradePrompt({
 /**
  * <TierLockedButton>
  * Replacement for buttons that are locked to higher tiers
- * 
+ *
  * Usage:
  *   {canAccess('rollCutOptimizer') ? (
  *     <button onClick={handleOptimize}>Optimize</button>
@@ -278,9 +286,10 @@ export function TierLockedButton({
 
   if (!upgrade) return null;
 
-  const label = upgrade.type === "tier-upgrade"
-    ? `Upgrade (${upgrade.type === "tier-upgrade" ? "$" + upgrade.monthlyCost : ""})`
-    : `Add-on ($${upgrade.monthlyCost}/mo)`;
+  const label =
+    upgrade.type === "tier-upgrade"
+      ? `Upgrade (${upgrade.type === "tier-upgrade" ? "$" + upgrade.monthlyCost : ""})`
+      : `Add-on ($${upgrade.monthlyCost}/mo)`;
 
   return (
     <button
@@ -296,18 +305,14 @@ export function TierLockedButton({
 /**
  * <TierBadge>
  * Visual indicator of required tier for a feature
- * 
+ *
  * Usage:
  *   <h3>
  *     Roll-Cut Optimizer
  *     <TierBadge feature="rollCutOptimizer" />
  *   </h3>
  */
-export function TierBadge({
-  feature,
-}: {
-  feature: keyof FeatureAccessMatrix;
-}) {
+export function TierBadge({ feature }: { feature: keyof FeatureAccessMatrix }) {
   const upgrade = useFeatureUpgrade(feature);
 
   if (!upgrade) return null; // User has access
@@ -336,12 +341,10 @@ export function TierBadge({
 // ============================================================================
 
 function formatFeatureName(feature: string): string {
-  return (
-    feature
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim()
-  );
+  return feature
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
 }
 
 function getFeatureDescription(feature: keyof FeatureAccessMatrix): string {
@@ -352,7 +355,8 @@ function getFeatureDescription(feature: keyof FeatureAccessMatrix): string {
     walkTheRoom: "Walk-the-room measurement",
     geometryEngine: "Geometry calculations",
     snapToGrid: "Snap-to-grid alignment",
-    rollCutOptimizer: "Automatically optimize roll-cut seams for waste reduction",
+    rollCutOptimizer:
+      "Automatically optimize roll-cut seams for waste reduction",
     seamPlanning: "Plan seams for optimal appearance and waste",
     seamVisibilityRisk: "AI analysis of seam visibility risks",
     directionalLayouts: "Design directional patterns",

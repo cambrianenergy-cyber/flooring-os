@@ -10,7 +10,7 @@ export default function ApiKeyForm({ apiKey, onSave }: ApiKeyFormProps) {
   const [showInstructions, setShowInstructions] = useState(false);
 
   return (
-    <div className="bg-white p-4 rounded shadow mb-6 max-w-lg mx-auto">
+    <div className="bg-background text-slate-900 p-4 rounded shadow mb-6 max-w-lg mx-auto">
       <h2 className="text-lg font-semibold mb-2">OpenAI API Key</h2>
       <input
         type="text"

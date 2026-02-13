@@ -5,17 +5,17 @@
 
 "use client";
 
-import React from "react";
-import {
-  useTier,
-  useBillingInfo,
-  useTeamCapacity,
-  useTierDefinition,
-  useAddOns,
-} from "@/lib/useTier";
 import { TierBadge, TierUpgradePrompt } from "@/components/TierGate";
-import { TIER_DEFINITIONS } from "@/lib/pricingTiers";
 import type { TierLevel } from "@/lib/pricingTiers";
+import { TIER_DEFINITIONS } from "@/lib/pricingTiers";
+import {
+    useAddOns,
+    useBillingInfo,
+    useTeamCapacity,
+    useTier,
+    useTierDefinition,
+} from "@/lib/useTier";
+import React from "react";
 
 interface BillingSettingsProps {
   onUpgradeClick?: (tier: TierLevel) => void;
@@ -32,7 +32,7 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
   const { activeAddOns } = useAddOns();
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
   const [upgradeTarget, setUpgradeTarget] = React.useState<TierLevel | null>(
-    null
+    null,
   );
 
   if (!billing) {
@@ -48,13 +48,14 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Current Tier Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-background text-slate-900 rounded-lg border border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              {tierDef?.displayName || "Square " + tier.charAt(0).toUpperCase() + tier.slice(1)}
+              {tierDef?.displayName ||
+                "Square " + tier.charAt(0).toUpperCase() + tier.slice(1)}
             </h2>
-            <p className="text-gray-600 mt-1">{tierDef?.description}</p>
+            <p className="text-muted mt-1">{tierDef?.description}</p>
           </div>
           <TierBadge feature="rollCutOptimizer" />
         </div>
@@ -62,24 +63,26 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
         {/* Billing Details Grid */}
         <div className="mt-6 grid grid-cols-3 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Monthly Cost</p>
+            <p className="text-sm text-muted">Monthly Cost</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
               ${billing.monthlyPrice}
-              <span className="text-xs text-gray-600 font-normal">/mo</span>
+              <span className="text-xs text-muted font-normal">/mo</span>
             </p>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Billing Cycle</p>
+            <p className="text-sm text-muted">Billing Cycle</p>
             <p className="text-lg font-semibold text-gray-900 mt-1 capitalize">
               {billing.billingCycle}
             </p>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">Next Billing</p>
+            <p className="text-sm text-muted">Next Billing</p>
             <p className="text-lg font-semibold text-gray-900 mt-1">
-              {billing.nextBillingDate ? new Date(billing.nextBillingDate).toLocaleDateString() : "N/A"}
+              {billing.nextBillingDate
+                ? new Date(billing.nextBillingDate).toLocaleDateString()
+                : "N/A"}
             </p>
           </div>
         </div>
@@ -114,7 +117,7 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
       </div>
 
       {/* Team Capacity Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-background text-slate-900 rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900">Team Size</h3>
 
         <div className="mt-4">
@@ -122,7 +125,7 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
             <p className="text-sm font-medium text-gray-700">
               Members: {capacity.current} / {capacity.max}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               {capacity.percentageUsed.toFixed(0)}%
             </p>
           </div>
@@ -131,15 +134,13 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all ${
-                capacity.percentageUsed > 80
-                  ? "bg-red-600"
-                  : "bg-blue-600"
+                capacity.percentageUsed > 80 ? "bg-red-600" : "bg-blue-600"
               }`}
               style={{ width: `${Math.min(capacity.percentageUsed, 100)}%` }}
             />
           </div>
 
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-xs text-muted mt-2">
             {capacity.slotsRemaining} seats available
           </p>
         </div>
@@ -152,7 +153,7 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
       </div>
 
       {/* Active Add-ons Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-background text-slate-900 rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900">Add-ons</h3>
 
         {activeAddOns.length > 0 ? (
@@ -181,9 +182,7 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-gray-600 text-sm">
-            No add-ons currently active
-          </p>
+          <p className="mt-4 text-muted text-sm">No add-ons currently active</p>
         )}
 
         <button className="mt-4 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 text-sm font-medium">
@@ -193,55 +192,53 @@ export function BillingSettings({ onUpgradeClick }: BillingSettingsProps) {
 
       {/* Upgrade Options Section (if not on Enterprise) */}
       {tier !== "enterprise" && !isFounder && (
-        <div className="bg-white rounded-lg border border-blue-200 bg-blue-50 p-6">
+        <div className="bg-background text-slate-900 rounded-lg border border-blue-200 bg-blue-50 p-6">
           <h3 className="text-lg font-bold text-gray-900">Upgrade Your Plan</h3>
-          <p className="text-gray-600 mt-1 text-sm">
+          <p className="text-muted mt-1 text-sm">
             Unlock more features and increase your team capacity
           </p>
 
           <div className="mt-4 space-y-2">
-            {(["professional", "enterprise", "infrastructure"] as TierLevel[]).map(
-              (targetTier) => {
-                if (
-                  ["essentials", "professional", "enterprise"].indexOf(tier) >=
-                  ["essentials", "professional", "enterprise"].indexOf(targetTier)
-                ) {
-                  return null; // Skip if user already on this tier or higher
-                }
-
-                const targetDef = TIER_DEFINITIONS[targetTier];
-                const cost = targetDef.monthlyPrice - billing.monthlyPrice;
-
-                return (
-                  <button
-                    key={targetTier}
-                    onClick={() => handleUpgradeClick(targetTier)}
-                    className="w-full px-4 py-3 text-left bg-white rounded-lg border border-gray-300 hover:border-blue-600 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {targetDef.displayName}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {targetDef.maxUsers === Infinity
-                            ? "Unlimited users"
-                            : `Up to ${targetDef.maxUsers} users`}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">
-                          +${cost}/mo
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          ${targetDef.monthlyPrice}/mo
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
+            {(
+              ["professional", "enterprise", "infrastructure"] as TierLevel[]
+            ).map((targetTier) => {
+              if (
+                ["essentials", "professional", "enterprise"].indexOf(tier) >=
+                ["essentials", "professional", "enterprise"].indexOf(targetTier)
+              ) {
+                return null; // Skip if user already on this tier or higher
               }
-            )}
+
+              const targetDef = TIER_DEFINITIONS[targetTier];
+              const cost = targetDef.monthlyPrice - billing.monthlyPrice;
+
+              return (
+                <button
+                  key={targetTier}
+                  onClick={() => handleUpgradeClick(targetTier)}
+                  className="w-full px-4 py-3 text-left bg-background text-slate-900 rounded-lg border border-gray-300 hover:border-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {targetDef.displayName}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {targetDef.maxUsers === Infinity
+                          ? "Unlimited users"
+                          : `Up to ${targetDef.maxUsers} users`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">+${cost}/mo</p>
+                      <p className="text-xs text-muted">
+                        ${targetDef.monthlyPrice}/mo
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

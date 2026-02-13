@@ -1,16 +1,16 @@
 "use client";
-import React, { useState } from "react";
 import { useWorkflow } from "@/lib/workflow";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import OnboardingLayout from "../OnboardingLayout";
 import OnboardingProgress from "../OnboardingProgress";
-import { useRouter } from "next/navigation";
 
 const WORKFLOW_PACKS = [
   { key: "estimates", name: "Estimates" },
   { key: "leads", name: "Leads" },
   { key: "catalog", name: "Catalog" },
   { key: "jobTracking", name: "Job Tracking" },
-  { key: "aiAssist", name: "AI Assistants" }
+  { key: "aiAssist", name: "AI Assistants" },
 ];
 
 export default function WorkflowPacksStep() {
@@ -21,7 +21,9 @@ export default function WorkflowPacksStep() {
   const { setStep, completeStep } = useWorkflow();
 
   const handleToggle = (key: string) => {
-    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setSelected((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,15 +43,22 @@ export default function WorkflowPacksStep() {
 
   return (
     <OnboardingLayout step={5}>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 mt-10">
-          <h1 className="text-3xl font-bold mb-4 text-center">Workflow Packs</h1>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-slate-100">
+        <div className="max-w-lg w-full bg-background text-slate-900 rounded-xl shadow-lg p-8 mt-10">
+          <h1 className="text-3xl font-bold mb-4 text-center">
+            Workflow Packs
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Select workflow packs to install:</label>
+              <label className="block text-sm font-medium mb-2">
+                Select workflow packs to install:
+              </label>
               <div className="grid grid-cols-2 gap-2">
-                {WORKFLOW_PACKS.map(pack => (
-                  <label key={pack.key} className="flex items-center gap-2 cursor-pointer">
+                {WORKFLOW_PACKS.map((pack) => (
+                  <label
+                    key={pack.key}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={selected.includes(pack.key)}
@@ -70,8 +79,10 @@ export default function WorkflowPacksStep() {
               {loading ? "Saving..." : "Continue"}
             </button>
           </form>
-          <OnboardingProgress currentStep={6} totalSteps={9} />
-          <span className="text-xs text-muted block text-center mt-2">Step 6 of 9</span>
+          <OnboardingProgress currentStep={6} />
+          <span className="text-xs text-gray-600 block text-center mt-2">
+            Step 6 of 9
+          </span>
         </div>
       </div>
     </OnboardingLayout>

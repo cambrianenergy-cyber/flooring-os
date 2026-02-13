@@ -1,15 +1,34 @@
 /**
  * Floor Plan Canvas Component
- * 
+ *
  * Interactive canvas for drawing room geometries from laser measurements
  */
 
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
-import { getFirestore, collection, addDoc, updateDoc, doc, Timestamp } from "firebase/firestore";
+import type {
+    GeometryOpening,
+    GeometryPoint,
+    GeometrySegment,
+    MeasureGeometry,
+    MeasureReading,
+} from "@/types/measureSchema";
 import { MEASURE_COLLECTIONS } from "@/types/measureSchema";
-import type { MeasureGeometry, MeasureReading, GeometryPoint, GeometrySegment, GeometryOpening } from "@/types/measureSchema";
+import {
+    addDoc,
+    collection,
+    doc,
+    getFirestore,
+    Timestamp,
+    updateDoc,
+} from "firebase/firestore";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { OpeningEditor } from "./OpeningEditor";
 import { PhotoCapture } from "./PhotoCapture";
 
@@ -101,7 +120,7 @@ export function FloorPlanCanvas({
         b: "p1",
         length: Math.sqrt(
           Math.pow(newPoints[newPoints.length - 1].x - newPoints[0].x, 2) +
-          Math.pow(newPoints[newPoints.length - 1].y - newPoints[0].y, 2)
+            Math.pow(newPoints[newPoints.length - 1].y - newPoints[0].y, 2),
         ),
         source: "derived",
         readingId: undefined,
@@ -112,7 +131,10 @@ export function FloorPlanCanvas({
     return { points: newPoints, segments: newSegments };
   }, [readings]);
 
-  const autoGeometry = useMemo(() => buildGeometryFromReadings(), [buildGeometryFromReadings]);
+  const autoGeometry = useMemo(
+    () => buildGeometryFromReadings(),
+    [buildGeometryFromReadings],
+  );
 
   const activePoints = manualMode ? manualPoints : autoGeometry.points;
   const activeSegments = manualMode ? manualSegments : autoGeometry.segments;
@@ -141,13 +163,17 @@ export function FloorPlanCanvas({
 
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 0.5;
-    for (let x = 0; x < canvas.width; x += GRID_SIZE * PIXELS_PER_FOOT / 12) {
+    for (let x = 0; x < canvas.width; x += (GRID_SIZE * PIXELS_PER_FOOT) / 12) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += GRID_SIZE * PIXELS_PER_FOOT / 12) {
+    for (
+      let y = 0;
+      y < canvas.height;
+      y += (GRID_SIZE * PIXELS_PER_FOOT) / 12
+    ) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
@@ -171,11 +197,7 @@ export function FloorPlanCanvas({
       ctx.fillStyle = "#1e40af";
       ctx.font = "12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(
-        `${(segment.length / 12).toFixed(1)}'`,
-        midX,
-        midY - 5
-      );
+      ctx.fillText(`${(segment.length / 12).toFixed(1)}'`, midX, midY - 5);
     });
 
     openings.forEach((opening) => {
@@ -189,8 +211,10 @@ export function FloorPlanCanvas({
       const offsetRatio = (opening.offsetFromA || 0) / segment.length;
       const widthRatio = opening.width / segment.length;
 
-      const startX = pointA.screenX + (pointB.screenX - pointA.screenX) * offsetRatio;
-      const startY = pointA.screenY + (pointB.screenY - pointA.screenY) * offsetRatio;
+      const startX =
+        pointA.screenX + (pointB.screenX - pointA.screenX) * offsetRatio;
+      const startY =
+        pointA.screenY + (pointB.screenY - pointA.screenY) * offsetRatio;
       const endX = startX + (pointB.screenX - pointA.screenX) * widthRatio;
       const endY = startY + (pointB.screenY - pointA.screenY) * widthRatio;
 
@@ -221,11 +245,7 @@ export function FloorPlanCanvas({
       ctx.fillStyle = "#111827";
       ctx.font = "16px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(
-        `Area: ${area.toFixed(1)} sq ft`,
-        canvas.width / 2,
-        30
-      );
+      ctx.fillText(`Area: ${area.toFixed(1)} sq ft`, canvas.width / 2, 30);
     }
   }, [activePoints, activeSegments, calculateArea, openings, selectedPoint]);
 
@@ -270,12 +290,14 @@ export function FloorPlanCanvas({
         points: activePoints.map(({ screenX, screenY, ...p }) => p),
         segments: activeSegments,
         openings,
-        areas: [{
-          id: "main",
-          name: "Main Area",
-          polygonPointIds: activePoints.map(p => p.id),
-          type: "main",
-        }],
+        areas: [
+          {
+            id: "main",
+            name: "Main Area",
+            polygonPointIds: activePoints.map((p) => p.id),
+            type: "main",
+          },
+        ],
         labels: [],
         calculations: {
           area: area * 144, // Store in sq inches (canonical)
@@ -285,7 +307,10 @@ export function FloorPlanCanvas({
         confidence: {
           score: readings.length > 0 ? 95 : 70, // Higher if laser-measured
           breakdown: {
-            laserCoveragePct: activeSegments.length === 0 ? 0 : (readings.length / activeSegments.length) * 100,
+            laserCoveragePct:
+              activeSegments.length === 0
+                ? 0
+                : (readings.length / activeSegments.length) * 100,
             manualEditsCount: 0,
             closureError: 0,
           },
@@ -300,7 +325,7 @@ export function FloorPlanCanvas({
         const geometriesRef = collection(db, MEASURE_COLLECTIONS.GEOMETRIES);
         const docRef = await addDoc(geometriesRef, geometryData);
         setGeometryId(docRef.id);
-        
+
         onGeometryUpdated?.({
           id: docRef.id,
           ...geometryData,
@@ -351,7 +376,7 @@ export function FloorPlanCanvas({
     if (manualPoints.length > 0) {
       const prevPoint = manualPoints[manualPoints.length - 1];
       const distance = Math.sqrt(
-        Math.pow(x - prevPoint.x, 2) + Math.pow(y - prevPoint.y, 2)
+        Math.pow(x - prevPoint.x, 2) + Math.pow(y - prevPoint.y, 2),
       );
 
       const newSegment: GeometrySegment = {
@@ -400,7 +425,7 @@ export function FloorPlanCanvas({
             width={800}
             height={600}
             onClick={handleCanvasClick}
-            className="bg-white cursor-crosshair"
+            className="bg-white text-slate-900 cursor-crosshair"
           />
         </div>
 
@@ -411,7 +436,7 @@ export function FloorPlanCanvas({
             openings={openings}
             onOpeningsChange={setOpenings}
           />
-          
+
           <PhotoCapture
             workspaceId={workspaceId}
             jobId={jobId}
@@ -425,16 +450,22 @@ export function FloorPlanCanvas({
       {activePoints.length >= 3 && (
         <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
           <div>
-            <p className="text-sm text-gray-600">Area</p>
-            <p className="text-xl font-semibold">{calculateArea().toFixed(1)} sq ft</p>
+            <p className="text-sm text-muted">Area</p>
+            <p className="text-xl font-semibold">
+              {calculateArea().toFixed(1)} sq ft
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Perimeter</p>
-            <p className="text-xl font-semibold">{calculatePerimeter().toFixed(1)} ft</p>
+            <p className="text-sm text-muted">Perimeter</p>
+            <p className="text-xl font-semibold">
+              {calculatePerimeter().toFixed(1)} ft
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Baseboard</p>
-            <p className="text-xl font-semibold">{calculateBaseboard().toFixed(1)} LF</p>
+            <p className="text-sm text-muted">Baseboard</p>
+            <p className="text-xl font-semibold">
+              {calculateBaseboard().toFixed(1)} LF
+            </p>
           </div>
         </div>
       )}

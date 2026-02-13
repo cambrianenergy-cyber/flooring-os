@@ -1,17 +1,17 @@
+"use client";
 
-'use client';
-
-
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useChatMessages from "../lib/useChatMessages";
-
 
 type ChatUIProps = {
   conversationId?: string;
   onDraftChange?: (draft: string) => void;
 };
 
-export default function ChatUI({ conversationId = "demo", onDraftChange }: ChatUIProps) {
+export default function ChatUI({
+  conversationId = "demo",
+  onDraftChange,
+}: ChatUIProps) {
   const { messages, loading, sendMessage } = useChatMessages(conversationId);
   const [input, setInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -34,9 +34,18 @@ export default function ChatUI({ conversationId = "demo", onDraftChange }: ChatU
     if (onDraftChange) onDraftChange("");
 
     // Get AI settings from localStorage
-    const apiKey = typeof window !== 'undefined' ? localStorage.getItem("openai_api_key") : undefined;
-    const aiModel = typeof window !== 'undefined' ? localStorage.getItem("msg_ai_model") || "gpt-4" : "gpt-4";
-    const aiTemperature = typeof window !== 'undefined' ? Number(localStorage.getItem("msg_ai_temp") || 0.5) : 0.5;
+    const apiKey =
+      typeof window !== "undefined"
+        ? localStorage.getItem("openai_api_key")
+        : undefined;
+    const aiModel =
+      typeof window !== "undefined"
+        ? localStorage.getItem("msg_ai_model") || "gpt-4"
+        : "gpt-4";
+    const aiTemperature =
+      typeof window !== "undefined"
+        ? Number(localStorage.getItem("msg_ai_temp") || 0.5)
+        : 0.5;
 
     if (!apiKey) {
       setAiError("No OpenAI API key found. Please add your key in settings.");
@@ -48,7 +57,14 @@ export default function ChatUI({ conversationId = "demo", onDraftChange }: ChatU
       const res = await fetch("/api/ai-agent/v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, apiKey, context, tools, model: aiModel, temperature: aiTemperature }),
+        body: JSON.stringify({
+          messages,
+          apiKey,
+          context,
+          tools,
+          model: aiModel,
+          temperature: aiTemperature,
+        }),
       });
       const data = await res.json();
       if (data.text) {
@@ -66,10 +82,10 @@ export default function ChatUI({ conversationId = "demo", onDraftChange }: ChatU
   };
 
   return (
-    <div className="flex flex-col h-[70vh] max-w-lg mx-auto border rounded shadow bg-white">
+    <div className="flex flex-col h-[70vh] max-w-lg mx-auto border rounded shadow bg-white text-slate-900">
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {loading ? (
-          <div className="text-center text-gray-400">Loading…</div>
+          <div className="text-center text-muted">Loading…</div>
         ) : (
           messages.map((msg) => (
             <div

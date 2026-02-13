@@ -1,16 +1,20 @@
-import { NextResponse } from "next/server";
+import { requireRole, requireWorkspaceMember } from "@/lib/authz";
 import { getOrCreateStripeCustomer, stripe } from "@/lib/billing";
-import { requireWorkspaceMember, requireRole } from "@/lib/authz";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { NextResponse } from "next/server";
 
-function getUid(req: Request) {
-  const uid = req.headers.get("x-debug-uid"); // replace with real auth
-  if (!uid) throw new Error("UNAUTHENTICATED");
-  return uid;
+import { getAuth } from "firebase-admin/auth";
+async function getUid(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer "))
+    throw new Error("UNAUTHENTICATED");
+  const token = authHeader.split("Bearer ")[1];
+  const decoded = await getAuth().verifyIdToken(token);
+  return decoded.uid;
 }
 
 export async function POST(req: Request) {
-  const uid = getUid(req);
+  const uid = await getUid(req);
   const { workspaceId } = await req.json();
 
   const member = await requireWorkspaceMember(workspaceId, uid);

@@ -1,10 +1,10 @@
 /**
  * WALK-THE-ROOM MODE SPECIFICATION
- * 
+ *
  * Critical iPhone workflow: User walks the perimeter of a room while
  * holding phone + Leica Disto. Phone captures measurements and auto-places
  * points to form room geometry.
- * 
+ *
  * Example: 20x15 foot rectangular room
  *   - User starts at corner (0, 0)
  *   - Walks along wall, Leica measures distance
@@ -34,12 +34,12 @@ export interface WalkStep {
   id: string;
   stepNumber: number;
   measurement: MeasurementCapture;
-  
+
   // Computed position
   startPoint: { x: number; y: number };
   endPoint: { x: number; y: number };
   bearing: number; // calculated from movement direction
-  
+
   // UI state
   confirmed: boolean; // user accepted this measurement
   notes?: string;
@@ -50,20 +50,25 @@ export interface WalkTheRoomState {
   isActive: boolean;
   steps: WalkStep[];
   currentStepNumber: number;
-  
+
   // Geometry being built
   points: { x: number; y: number }[];
-  segments: Array<{ from: number; to: number; distance: number; bearing: number }>;
-  
+  segments: Array<{
+    from: number;
+    to: number;
+    distance: number;
+    bearing: number;
+  }>;
+
   // Device state
   leiacConnected: boolean;
   gpsAvailable: boolean; // optional: helps with bearing
   lastMeasurement?: MeasurementCapture;
-  
+
   // Calibration
   startPoint: { x: number; y: number }; // where user started (0, 0 by default)
   firstBearing: number; // bearing of first wall (to establish coordinate system)
-  
+
   // Validation
   autoCloseIfValid: boolean; // auto-close polygon if ring closes
   closingError?: number; // distance between last point and first point
@@ -231,7 +236,10 @@ export class WalkTheRoomEngine {
    */
   exportGeometry(): GeometryData {
     // Return a valid GeometryData object
-    const perimeter = this.state.steps.reduce((sum, s) => sum + s.measurement.distance, 0);
+    const perimeter = this.state.steps.reduce(
+      (sum, s) => sum + s.measurement.distance,
+      0,
+    );
     const area = this.computeArea();
     // Map points to GeometryData.Point
     const points = this.state.points.map((p, i) => ({
@@ -280,13 +288,19 @@ export class WalkTheRoomEngine {
   // Helpers
   // =========================================================================
 
-  private distance(p1: { x: number; y: number }, p2: { x: number; y: number }): number {
+  private distance(
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+  ): number {
     const dx = p2.x - p1.x;
     const dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  private bearing(p1: { x: number; y: number }, p2: { x: number; y: number }): number {
+  private bearing(
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+  ): number {
     const dx = p2.x - p1.x;
     const dy = p2.y - p1.y;
     let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
@@ -313,14 +327,14 @@ export class WalkTheRoomEngine {
 
 /**
  * React component for walk-the-room workflow
- * 
+ *
  * Usage:
  *   <WalkTheRoomUI
  *     onComplete={(geometry) => saveToFirestore(geometry)}
  *   />
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import type { GeometryData } from "@/lib/geometrySchema";
 
@@ -370,12 +384,13 @@ export function WalkTheRoomUI({ onComplete, onCancel }: WalkTheRoomUIProps) {
   const exported = engine.exportGeometry();
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-background text-slate-900">
       {/* Header */}
       <div className="border-b border-gray-200 bg-blue-50 px-4 py-3">
         <h2 className="text-sm font-semibold text-gray-900">Walk the Room</h2>
-        <p className="text-xs text-gray-600">
-          {state.steps.length} walls • {exported.perimeter.toFixed(1)} ft perimeter • {exported.area.toFixed(0)} sqft
+        <p className="text-xs text-muted">
+          {state.steps.length} walls • {exported.perimeter.toFixed(1)} ft
+          perimeter • {exported.area.toFixed(0)} sqft
         </p>
       </div>
 
@@ -385,8 +400,10 @@ export function WalkTheRoomUI({ onComplete, onCancel }: WalkTheRoomUIProps) {
       </div>
 
       {/* Measurement Input */}
-      <div className="border-t border-gray-200 bg-white px-4 py-3 space-y-2">
-        <p className="text-xs font-semibold text-gray-600">Step {state.steps.length + 1}</p>
+      <div className="border-t border-gray-200 bg-background text-slate-900 px-4 py-3 space-y-2">
+        <p className="text-xs font-semibold text-muted">
+          Step {state.steps.length + 1}
+        </p>
         <div className="flex gap-2">
           <input
             type="number"
@@ -416,7 +433,7 @@ export function WalkTheRoomUI({ onComplete, onCancel }: WalkTheRoomUIProps) {
       <div className="flex gap-2 border-t border-gray-200 bg-gray-50 px-4 py-3">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded"
+          className="flex-1 px-4 py-2 bg-background border border-gray-300 text-gray-700 text-sm font-semibold rounded"
         >
           Cancel
         </button>
@@ -502,7 +519,7 @@ function WalkTheRoomDiagram({
       ref={canvas}
       width={340}
       height={400}
-      className="w-full border border-gray-200 rounded-lg bg-white"
+      className="w-full border border-gray-200 rounded-lg bg-background text-slate-900"
     />
   );
 }
@@ -510,4 +527,3 @@ function WalkTheRoomDiagram({
 /**
  * Export for use in iPhone app
  */
-

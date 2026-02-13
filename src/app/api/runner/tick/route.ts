@@ -6,6 +6,18 @@ import { runNextStep } from "@/lib/runner/runOneStep";
 
 export const runtime = "nodejs";
 
+interface WorkflowRunData {
+  status: "queued" | "running" | "completed" | "failed";
+  [key: string]: unknown;
+}
+
+interface TickResult {
+  runId: string;
+  skipped?: boolean;
+  reason?: string;
+  [key: string]: unknown;
+}
+
 function requireCronKey(req: Request) {
   const key = req.headers.get("x-cron-key");
   if (!process.env.CRON_KEY) return; // allow in dev if not set
@@ -27,7 +39,7 @@ export async function POST(req: Request) {
       .limit(10)
       .get();
 
-    const results: any[] = [];
+    const results: TickResult[] = [];
 
     for (const doc of snap.docs) {
       const runId = doc.id;
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
       }
 
       try {
-        const data = doc.data() as any;
+        const data = doc.data() as WorkflowRunData;
         if (data.status === "queued") {
           await doc.ref.update({ status: "running", updatedAt: now });
         }
@@ -52,9 +64,10 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true, processed: results.length, results });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json(
-      { ok: false, error: e?.message ?? "Unknown error" },
+      { ok: false, error: errorMessage },
       { status: 401 }
     );
   }

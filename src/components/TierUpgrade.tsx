@@ -1,19 +1,16 @@
 /**
  * Tier Upgrade Component
- * 
+ *
  * Displays available upgrade options and handles tier transitions
  * Shows current tier, next tier benefits, and pricing
  */
 
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  TIER_DEFINITIONS,
-  FEATURE_ACCESS,
-} from "@/lib/pricingTiers";
 import type { TierLevel } from "@/lib/pricingTiers";
+import { FEATURE_ACCESS, TIER_DEFINITIONS } from "@/lib/pricingTiers";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface TierUpgradeProps {
   currentTier: TierLevel;
@@ -40,14 +37,15 @@ export function TierUpgrade({
   // Get available tiers above current tier
   const currentTierIndex = TIER_HIERARCHY.indexOf(currentTier);
   const availableUpgradeTiers = TIER_HIERARCHY.slice(
-    currentTierIndex + 1
+    currentTierIndex + 1,
   ) as TierLevel[];
 
   if (availableUpgradeTiers.length === 0) {
     return (
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-blue-800">
-          You&apos;re on the highest tier ({TIER_DEFINITIONS[currentTier].displayName}).
+          You&apos;re on the highest tier (
+          {TIER_DEFINITIONS[currentTier].displayName}).
         </p>
       </div>
     );
@@ -80,7 +78,7 @@ export function TierUpgrade({
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setLoading(false);
@@ -99,7 +97,8 @@ export function TierUpgrade({
         {availableUpgradeTiers.map((tier) => {
           const tierDef = TIER_DEFINITIONS[tier];
           const currentTierDef = TIER_DEFINITIONS[currentTier];
-          const monthlyIncrease = tierDef.monthlyPrice - currentTierDef.monthlyPrice;
+          const monthlyIncrease =
+            tierDef.monthlyPrice - currentTierDef.monthlyPrice;
           const annualIncrease = monthlyIncrease * 12;
 
           return (
@@ -111,9 +110,7 @@ export function TierUpgrade({
                 {tierDef.displayName}
               </h3>
 
-              <p className="text-sm text-gray-600 mt-1">
-                {tierDef.description}
-              </p>
+              <p className="text-sm text-muted mt-1">{tierDef.description}</p>
 
               <div className="mt-4 space-y-2">
                 <div>
@@ -124,10 +121,7 @@ export function TierUpgrade({
                 </div>
 
                 <div className="text-sm text-amber-700 bg-amber-50 p-2 rounded">
-                  <span className="font-semibold">
-                    +${monthlyIncrease}/mo
-                  </span>
-                  {" "}
+                  <span className="font-semibold">+${monthlyIncrease}/mo</span>{" "}
                   <span className="text-xs">
                     (+${annualIncrease}/year from your current plan)
                   </span>
@@ -136,7 +130,7 @@ export function TierUpgrade({
 
               {/* Key Feature Highlights */}
               <div className="mt-4 space-y-1">
-                <p className="text-xs font-semibold text-gray-600 uppercase">
+                <p className="text-xs font-semibold text-muted uppercase">
                   Includes:
                 </p>
                 <ul className="text-sm space-y-1 text-gray-700">
@@ -159,7 +153,9 @@ export function TierUpgrade({
                     return (
                       <li
                         key={feature}
-                        className={isAvailable ? "text-green-700" : "text-gray-400"}
+                        className={
+                          isAvailable ? "text-green-700" : "text-muted"
+                        }
                       >
                         {isAvailable ? "✓" : "✗"}{" "}
                         {feature.replace(/([A-Z])/g, " $1").trim()}
@@ -174,7 +170,9 @@ export function TierUpgrade({
                 disabled={loading}
                 className="w-full mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? "Processing..." : "Upgrade to " + tierDef.displayName}
+                {loading
+                  ? "Processing..."
+                  : "Upgrade to " + tierDef.displayName}
               </button>
             </div>
           );
@@ -182,8 +180,8 @@ export function TierUpgrade({
       </div>
 
       <p className="text-xs text-gray-500">
-        Your subscription will be updated immediately. You&apos;ll receive a prorated
-        invoice for the difference.
+        Your subscription will be updated immediately. You&apos;ll receive a
+        prorated invoice for the difference.
       </p>
     </div>
   );

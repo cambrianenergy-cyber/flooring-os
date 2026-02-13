@@ -17,7 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="rounded-xl shadow-lg bg-page-panel border border-dark-muted p-4">
                 <h2 className="text-xl font-bold mb-4 text-accent">KPI</h2>
                 <ul className="space-y-3 text-base">
-                  <li><span className="font-semibold text-foreground">Today's appointments:</span> <span className="text-accent"></span></li>
+                  <li><span className="font-semibold text-foreground">Today&#39;s appointments:</span> <span className="text-accent"></span></li>
                   <li><span className="font-semibold text-foreground">Open estimates:</span> <span className="text-accent"></span></li>
                   <li><span className="font-semibold text-foreground">Close rate (7/30 days):</span> <span className="text-accent"></span></li>
                   <li><span className="font-semibold text-foreground">Avg ticket:</span> <span className="text-accent"></span></li>

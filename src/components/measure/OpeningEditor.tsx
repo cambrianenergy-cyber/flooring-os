@@ -1,13 +1,13 @@
 /**
  * Opening Editor Component
- * 
+ *
  * UI for adding doors and windows to wall segments
  */
 
 "use client";
 
-import React, { useState } from "react";
-import type { GeometrySegment, GeometryOpening } from "@/types/measureSchema";
+import type { GeometryOpening, GeometrySegment } from "@/types/measureSchema";
+import { useState } from "react";
 
 interface OpeningEditorProps {
   segments: GeometrySegment[];
@@ -31,7 +31,7 @@ export function OpeningEditor({
   function addOpening() {
     if (!selectedSegment) return;
 
-    const segment = segments.find(s => s.id === selectedSegment);
+    const segment = segments.find((s) => s.id === selectedSegment);
     if (!segment) return;
 
     // Validate offset and width
@@ -41,12 +41,14 @@ export function OpeningEditor({
     }
 
     // Check for overlaps with existing openings on this segment
-    const segmentOpenings = openings.filter(o => o.segmentId === selectedSegment);
-    const hasOverlap = segmentOpenings.some(existing => {
+    const segmentOpenings = openings.filter(
+      (o) => o.segmentId === selectedSegment,
+    );
+    const hasOverlap = segmentOpenings.some((existing) => {
       const existingOffset = existing.offsetFromA || 0;
       const existingEnd = existingOffset + existing.width;
       const newEnd = offset + width;
-      
+
       return (
         (offset >= existingOffset && offset < existingEnd) ||
         (newEnd > existingOffset && newEnd <= existingEnd) ||
@@ -68,7 +70,7 @@ export function OpeningEditor({
     };
 
     onOpeningsChange([...openings, newOpening]);
-    
+
     // Reset form
     setWidth(36);
     setOffset(0);
@@ -76,11 +78,11 @@ export function OpeningEditor({
   }
 
   function removeOpening(openingId: string) {
-    onOpeningsChange(openings.filter(o => o.id !== openingId));
+    onOpeningsChange(openings.filter((o) => o.id !== openingId));
   }
 
   function getSegmentOpenings(segmentId: string): GeometryOpening[] {
-    return openings.filter(o => o.segmentId === segmentId);
+    return openings.filter((o) => o.segmentId === segmentId);
   }
 
   return (
@@ -171,21 +173,28 @@ export function OpeningEditor({
                 min={0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                From wall start
-              </p>
+              <p className="text-xs text-gray-500 mt-1">From wall start</p>
             </div>
           </div>
 
           {selectedSegment && (
             <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
               <strong>Wall length:</strong>{" "}
-              {((segments.find(s => s.id === selectedSegment)?.length || 0) / 12).toFixed(1)}&apos;
+              {(
+                (segments.find((s) => s.id === selectedSegment)?.length || 0) /
+                12
+              ).toFixed(1)}
+              &apos;
               <span className="ml-2">
                 <strong>Available space:</strong>{" "}
-                {((segments.find(s => s.id === selectedSegment)?.length || 0) - offset - width) / 12 < 0 
-                  ? "❌ Exceeds wall" 
-                  : `✓ ${(((segments.find(s => s.id === selectedSegment)?.length || 0) - offset - width) / 12).toFixed(1)}' remaining`}
+                {((segments.find((s) => s.id === selectedSegment)?.length ||
+                  0) -
+                  offset -
+                  width) /
+                  12 <
+                0
+                  ? "❌ Exceeds wall"
+                  : `✓ ${(((segments.find((s) => s.id === selectedSegment)?.length || 0) - offset - width) / 12).toFixed(1)}' remaining`}
               </span>
             </div>
           )}
@@ -209,7 +218,7 @@ export function OpeningEditor({
 
             return (
               <div key={segment.id} className="border-l-4 border-blue-400 pl-3">
-                <p className="text-xs font-medium text-gray-600 mb-1">
+                <p className="text-xs font-medium text-muted mb-1">
                   {segment.id} ({(segment.length / 12).toFixed(1)}&apos;)
                 </p>
                 {segmentOpenings.map((opening) => (
@@ -229,9 +238,10 @@ export function OpeningEditor({
                         <p className="text-sm font-medium">
                           {opening.type === "door" ? "Door" : "Window"}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-muted">
                           {(opening.width / 12).toFixed(1)}&apos; wide ·
-                          {((opening.offsetFromA || 0) / 12).toFixed(1)}&apos; offset
+                          {((opening.offsetFromA || 0) / 12).toFixed(1)}&apos;
+                          offset
                         </p>
                       </div>
                     </div>
@@ -257,15 +267,15 @@ export function OpeningEditor({
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-600">Total Doors</p>
+              <p className="text-muted">Total Doors</p>
               <p className="text-lg font-semibold text-amber-700">
-                {openings.filter(o => o.type === "door").length}
+                {openings.filter((o) => o.type === "door").length}
               </p>
             </div>
             <div>
-              <p className="text-gray-600">Total Windows</p>
+              <p className="text-muted">Total Windows</p>
               <p className="text-lg font-semibold text-green-700">
-                {openings.filter(o => o.type === "window").length}
+                {openings.filter((o) => o.type === "window").length}
               </p>
             </div>
           </div>

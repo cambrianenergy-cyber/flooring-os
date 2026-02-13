@@ -52,6 +52,9 @@ export default function OnboardingIndexPage() {
       if (!user) return;
       const workspaceId = user.uid;
       const onboardingDoc = doc(db, "workspaces", workspaceId, "onboarding", "state");
+      console.log("Auth user:", user.uid);
+      console.log("Workspace ID:", workspaceId);
+      console.log("Firestore path:", onboardingDoc.path);
       const snap = await getDoc(onboardingDoc);
 
       // No onboarding doc yet → start onboarding

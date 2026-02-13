@@ -1,15 +1,15 @@
 /**
  * Feature Gating Component Library
- * 
+ *
  * Provides view-level components for conditional rendering
  * based on device class, feature set, and support level
  */
 
 "use client";
 
-import React from "react";
 import { useFeatures } from "@/lib/deviceDetectionProvider";
 import type { DeviceClass, FeatureSet } from "@/lib/platformStrategy";
+import React from "react";
 
 // ============================================================================
 // Gate by Feature Name
@@ -19,7 +19,7 @@ import type { DeviceClass, FeatureSet } from "@/lib/platformStrategy";
  * <FeatureGate name="freehandDrawing">
  *   <ApplePencilInterface />
  * </FeatureGate>
- * 
+ *
  * Only renders if device supports the feature
  */
 
@@ -45,7 +45,7 @@ export function FeatureGate({
       return (
         <div className="rounded-lg border-2 border-yellow-400 bg-yellow-50 p-4 text-sm">
           <p className="font-semibold">Feature unavailable on {device.class}</p>
-          <p className="text-xs text-gray-600">{name} is not supported</p>
+          <p className="text-xs text-muted">{name} is not supported</p>
         </div>
       );
     }
@@ -64,7 +64,7 @@ export function FeatureGate({
  * <DeviceGate devices={["ipad"]}>
  *   <SideBySideCatalog />
  * </DeviceGate>
- * 
+ *
  * Renders only on specified devices
  */
 
@@ -129,7 +129,7 @@ export function TabletOrLarger({
 
 /**
  * Adaptive layout that switches based on device
- * 
+ *
  * <AdaptiveLayout
  *   phone={<StackedView />}
  *   tablet={<SideBySideView />}
@@ -153,7 +153,10 @@ export function AdaptiveLayout({
   const { device } = useFeatures();
 
   if (device.class === "ipad" && ipad) return <>{ipad}</>;
-  if ((device.class === "android-tablet" || device.class === "ipad") && tablet) {
+  if (
+    (device.class === "android-tablet" || device.class === "ipad") &&
+    tablet
+  ) {
     return <>{tablet}</>;
   }
   if (device.formFactor === "phone" && phone) return <>{phone}</>;
@@ -169,7 +172,7 @@ export function AdaptiveLayout({
  * <ApplePencilOnly>
  *   <FreehandDrawingCanvas />
  * </ApplePencilOnly>
- * 
+ *
  * Only on iPad with Apple Pencil
  */
 
@@ -188,7 +191,7 @@ export function ApplePencilOnly({
  * <BluetoothEnabled>
  *   <LeicaDistoBLE />
  * </BluetoothEnabled>
- * 
+ *
  * All modern devices have Bluetooth LE
  */
 
@@ -211,7 +214,7 @@ export function BluetoothEnabled({
  * <CanEditGeometry>
  *   <GeometryEditor />
  * </CanEditGeometry>
- * 
+ *
  * Checks multiple conditions: editGeometry + not-readonly
  */
 
@@ -230,7 +233,7 @@ export function CanEditGeometry({
  * <CanOptimizeRollCut>
  *   <RollCutOptimizer />
  * </CanOptimizeRollCut>
- * 
+ *
  * iPad-only feature
  */
 
@@ -247,7 +250,7 @@ export function CanOptimizeRollCut({
   ) : (
     <>
       {fallback || (
-        <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-600">
+        <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 text-center text-sm text-muted">
           Roll Cut optimizer is available on iPad
         </div>
       )}
@@ -278,7 +281,7 @@ export function CanBrowseCatalog({
 
 /**
  * Show current device info (for debugging)
- * 
+ *
  * <DeviceInfo verbose={true} />
  */
 
@@ -287,7 +290,10 @@ export interface DeviceInfoProps {
   className?: string;
 }
 
-export function DeviceInfo({ verbose = false, className = "" }: DeviceInfoProps) {
+export function DeviceInfo({
+  verbose = false,
+  className = "",
+}: DeviceInfoProps) {
   const { device, isSupported } = useFeatures();
 
   if (!verbose) {
@@ -299,7 +305,9 @@ export function DeviceInfo({ verbose = false, className = "" }: DeviceInfoProps)
   }
 
   return (
-    <div className={`space-y-2 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm ${className}`}>
+    <div
+      className={`space-y-2 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm ${className}`}
+    >
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="font-semibold">Device Class</div>
@@ -315,7 +323,9 @@ export function DeviceInfo({ verbose = false, className = "" }: DeviceInfoProps)
         </div>
         <div>
           <div className="font-semibold">Screen Size</div>
-          <div className="text-xs">{device.screenDiagonal.toFixed(1)}&quot;</div>
+          <div className="text-xs">
+            {device.screenDiagonal.toFixed(1)}&quot;
+          </div>
         </div>
         <div>
           <div className="font-semibold">Bluetooth LE</div>
@@ -328,7 +338,9 @@ export function DeviceInfo({ verbose = false, className = "" }: DeviceInfoProps)
       </div>
       <div>
         <div className="font-semibold">Support Level</div>
-        <div className="text-xs">{isSupported ? "Supported" : "Unsupported"}</div>
+        <div className="text-xs">
+          {isSupported ? "Supported" : "Unsupported"}
+        </div>
       </div>
     </div>
   );
@@ -345,9 +357,12 @@ export function UnsupportedDeviceMessage() {
 
   return (
     <div className="rounded-lg border-2 border-red-300 bg-red-50 p-6 text-center">
-      <h2 className="text-lg font-semibold text-red-900">Device Not Supported</h2>
+      <h2 className="text-lg font-semibold text-red-900">
+        Device Not Supported
+      </h2>
       <p className="mt-2 text-sm text-red-700">
-        Square Flooring Pro Suite (Flooring OS) is optimized for iPad and recent iPhone models.
+        Square Flooring Pro Suite (Flooring OS) is optimized for iPad and recent
+        iPhone models.
       </p>
       <p className="mt-1 text-xs text-red-600">
         Your device: <strong>{device.class}</strong> ({device.osVersion})
@@ -365,7 +380,7 @@ export function UnsupportedDeviceMessage() {
 
 /**
  * Complete example showing how different devices render different UIs
- * 
+ *
  * iPad: Full drawing canvas + Apple Pencil + layers
  * iPhone: Tap-to-place + numeric input + Leica BLE
  * Android: Similar to iPhone

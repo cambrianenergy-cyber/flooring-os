@@ -1,10 +1,9 @@
-
 "use client";
-import React, { useState } from "react";
-import ModernMessageSettings from "./ModernMessageSettings";
+import { useState } from "react";
 import { deleteConversation } from "../lib/deleteConversation";
 import { useConversations } from "../lib/useConversations";
 import ChatUI from "./ChatUI";
+import ModernMessageSettings from "./ModernMessageSettings";
 
 type Tab = "inbox" | "outbox" | "all";
 
@@ -16,7 +15,10 @@ export default function Messaging2() {
   const [drafts, setDrafts] = useState<{ [id: string]: string }>({});
   const [showSettings, setShowSettings] = useState(false);
 
-  const userEmail = typeof window !== "undefined" ? localStorage.getItem("user_email") : undefined;
+  const userEmail =
+    typeof window !== "undefined"
+      ? localStorage.getItem("user_email")
+      : undefined;
 
   // Always show AI agent as a special conversation
   const aiAgentId = "ai-agent";
@@ -60,7 +62,7 @@ export default function Messaging2() {
   if (loading) return <div>Loading conversations…</div>;
 
   return (
-    <div className="flex h-[70vh] max-w-4xl mx-auto border rounded shadow bg-white">
+    <div className="flex h-[70vh] max-w-4xl mx-auto border rounded shadow bg-white text-slate-900">
       <aside className="w-72 border-r p-4 overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Conversations</h2>
@@ -75,15 +77,21 @@ export default function Messaging2() {
           <button
             className={`px-2 py-1 rounded ${tab === "inbox" ? "bg-blue-100" : ""}`}
             onClick={() => setTab("inbox")}
-          >Inbox</button>
+          >
+            Inbox
+          </button>
           <button
             className={`px-2 py-1 rounded ${tab === "outbox" ? "bg-blue-100" : ""}`}
             onClick={() => setTab("outbox")}
-          >Outbox</button>
+          >
+            Outbox
+          </button>
           <button
             className={`px-2 py-1 rounded ${tab === "all" ? "bg-blue-100" : ""}`}
             onClick={() => setTab("all")}
-          >All</button>
+          >
+            All
+          </button>
         </div>
         <ul className="flex-1 overflow-y-auto">
           {filtered.map((c) => (
@@ -93,7 +101,9 @@ export default function Messaging2() {
                 onClick={() => setActiveId(c.id)}
               >
                 {c.lastMessage ? c.lastMessage.slice(0, 40) : "(No messages)"}
-                <div className="text-xs text-gray-500">{c.participants?.join(", ")}</div>
+                <div className="text-xs text-muted">
+                  {c.participants?.join(", ")}
+                </div>
               </button>
               {c.id !== aiAgentId && (
                 <button
@@ -124,7 +134,10 @@ export default function Messaging2() {
       </aside>
       <main className="flex-1 p-4">
         {showSettings ? (
-          <ModernMessageSettings drafts={drafts} onClose={() => setShowSettings(false)} />
+          <ModernMessageSettings
+            drafts={drafts}
+            onClose={() => setShowSettings(false)}
+          />
         ) : showNew ? (
           <div className="max-w-md mx-auto bg-gray-50 p-6 rounded shadow">
             <h3 className="font-semibold mb-2">New Conversation</h3>
@@ -141,14 +154,19 @@ export default function Messaging2() {
               With AI Agent
             </button>
             <button
-              className="ml-4 text-gray-500 underline"
+              className="ml-4 text-muted underline"
               onClick={() => setShowNew(false)}
-            >Cancel</button>
+            >
+              Cancel
+            </button>
           </div>
         ) : activeId ? (
-          <ChatUI conversationId={activeId} onDraftChange={(val) => handleDraftChange(activeId, val)} />
+          <ChatUI
+            conversationId={activeId}
+            onDraftChange={(val) => handleDraftChange(activeId, val)}
+          />
         ) : (
-          <div className="text-gray-500">Select or start a conversation.</div>
+          <div className="text-muted">Select or start a conversation.</div>
         )}
       </main>
     </div>

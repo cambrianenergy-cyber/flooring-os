@@ -1,17 +1,22 @@
 /**
  * Photo Capture Component
- * 
+ *
  * Camera integration with Firebase Storage upload
  */
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import type { GeometrySegment, MeasurePhoto } from "@/types/measureSchema";
 import { MEASURE_COLLECTIONS } from "@/types/measureSchema";
-import type { MeasurePhoto, GeometrySegment } from "@/types/measureSchema";
+import {
+    addDoc,
+    collection,
+    getFirestore,
+    Timestamp,
+} from "firebase/firestore";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
 
 interface PhotoCaptureProps {
   workspaceId: string;
@@ -55,7 +60,7 @@ export function PhotoCapture({
         missing.map(async (photo) => {
           const url = await getDownloadURL(ref(storage, photo.storagePath));
           return [photo.id, url] as const;
-        })
+        }),
       );
 
       if (!isMounted) return;
@@ -80,12 +85,12 @@ export function PhotoCapture({
         video: { facingMode: "environment", width: 1920, height: 1080 },
         audio: false,
       });
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         videoRef.current.play();
       }
-      
+
       setStream(mediaStream);
       setCaptureMode("camera");
     } catch (err) {
@@ -96,7 +101,7 @@ export function PhotoCapture({
 
   function stopCamera() {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
     if (videoRef.current) {
@@ -120,11 +125,15 @@ export function PhotoCapture({
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Convert canvas to blob
-    canvas.toBlob(async (blob) => {
-      if (blob) {
-        await uploadPhoto(blob);
-      }
-    }, "image/jpeg", 0.9);
+    canvas.toBlob(
+      async (blob) => {
+        if (blob) {
+          await uploadPhoto(blob);
+        }
+      },
+      "image/jpeg",
+      0.9,
+    );
   }
 
   async function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
@@ -148,15 +157,13 @@ export function PhotoCapture({
       // Generate unique filename
       const timestamp = Date.now();
       const filename = `measurements/${workspaceId}/${jobId}/${roomId}/${timestamp}.jpg`;
-      
+
       // Upload to Firebase Storage
       const storageRef = ref(storage, filename);
       await uploadBytes(storageRef, file);
-      
+
       // Get download URL
       const url = await getDownloadURL(storageRef);
-
-
 
       // Save metadata to Firestore
       const photosRef = collection(db, MEASURE_COLLECTIONS.PHOTOS);
@@ -166,9 +173,11 @@ export function PhotoCapture({
         roomId,
         storagePath: filename,
         caption: notes || undefined,
-        linkedTo: selectedSegment ? {
-          segmentId: selectedSegment,
-        } : undefined,
+        linkedTo: selectedSegment
+          ? {
+              segmentId: selectedSegment,
+            }
+          : undefined,
         takenAt: Timestamp.now(),
         takenBy: userId,
         createdAt: Timestamp.now(),
@@ -183,9 +192,11 @@ export function PhotoCapture({
         roomId,
         storagePath: filename,
         caption: notes || undefined,
-        linkedTo: selectedSegment ? {
-          segmentId: selectedSegment,
-        } : undefined,
+        linkedTo: selectedSegment
+          ? {
+              segmentId: selectedSegment,
+            }
+          : undefined,
         takenAt: Timestamp.now(),
         takenBy: userId,
         createdAt: Timestamp.now(),
@@ -215,7 +226,7 @@ export function PhotoCapture({
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
+    <div className="border border-border rounded-lg p-4">
       <h4 className="text-sm font-semibold text-gray-700 mb-4">Photos</h4>
 
       {/* Capture Mode Toggle */}
@@ -250,7 +261,7 @@ export function PhotoCapture({
         <div className="mb-4">
           <video
             ref={videoRef}
-            className="w-full rounded-lg bg-black"
+            className="w-full rounded-lg bg-primary"
             playsInline
           />
           <canvas ref={canvasRef} className="hidden" />
@@ -295,7 +306,7 @@ export function PhotoCapture({
           <select
             value={selectedSegment || ""}
             onChange={(e) => setSelectedSegment(e.target.value || null)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm"
           >
             <option value="">No specific wall</option>
             {segments.map((segment) => (
@@ -314,7 +325,7 @@ export function PhotoCapture({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add notes about this photo..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm"
             rows={2}
           />
         </div>
@@ -323,7 +334,7 @@ export function PhotoCapture({
       {/* Photo Gallery */}
       {photos.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-600">
+          <p className="text-xs font-medium text-muted">
             {photos.length} {photos.length === 1 ? "photo" : "photos"} captured
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -337,7 +348,7 @@ export function PhotoCapture({
                       alt="Room photo"
                       width={400}
                       height={128}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      className="w-full h-32 object-cover rounded-lg border border-border"
                     />
                   )}
                   {photo.linkedTo?.segmentId && (
@@ -346,7 +357,7 @@ export function PhotoCapture({
                     </div>
                   )}
                   {photo.caption && (
-                    <div className="absolute bottom-1 left-1 right-1 px-2 py-1 bg-black/70 text-white text-xs rounded truncate">
+                    <div className="absolute bottom-1 left-1 right-1 px-2 py-1 bg-overlay/70 text-white text-xs rounded truncate">
                       {photo.caption}
                     </div>
                   )}

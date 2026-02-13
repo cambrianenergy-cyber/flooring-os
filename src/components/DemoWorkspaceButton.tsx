@@ -41,7 +41,7 @@ export default function DemoWorkspaceButton() {
   }
 
   return (
-    <div className="my-6 p-4 border rounded bg-white max-w-xl mx-auto">
+    <div className="my-6 p-4 border rounded bg-background text-slate-900 max-w-xl mx-auto">
       <h2 className="text-lg font-semibold mb-2">Demo Workspace Actions</h2>
       <div className="flex gap-3 mb-2">
         <button

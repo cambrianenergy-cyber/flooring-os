@@ -1,138 +1,145 @@
-import fs from "fs";
-import path from "path";
-// To use your Stripe webhook locally:
-// 1. Run `stripe listen --forward-to localhost:3003/api/stripe/webhook`
-// 2. Copy the webhook signing secret from the Stripe CLI output
-// 3. Add it to your .env.local file as:
-//    STRIPE_WEBHOOK_SECRET=whsec_...
-// This ensures your endpoint verifies Stripe events securely during development.
-export const runtime = "nodejs";
-// Type for Stripe subscription with snake_case properties
-type StripeSubscriptionSnakeCase = Stripe.Subscription & {
-  current_period_start?: number;
-  current_period_end?: number;
-  cancel_at_period_end?: boolean;
-  billing_cycle_anchor?: number;
-};
+import { writeBillingAuditLog } from "@/lib/audit/billing";
+import { adminDb } from "@/lib/firebase/admin";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { stripe } from "@/lib/billing";
-import { adminDb } from "@/lib/firebaseAdmin";
-// import removed: planFromSubscription not exported from @/lib/stripeConfig
-// import removed: handleStripeWebhook is unused
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-12-15.clover",
+});
 
 export async function POST(req: Request) {
-    // Helper to log to file
-    const logToFile = (msg: string) => {
-      const logPath = path.join(process.cwd(), "logs", "stripe.log");
-      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`);
-    };
-  // Security: Ensure webhook secret is set
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error("STRIPE_WEBHOOK_SECRET is not set!");
-    return new NextResponse("Webhook secret not set", { status: 500 });
-  }
-
   const sig = req.headers.get("stripe-signature");
-  if (!sig) return new NextResponse("Missing signature", { status: 400 });
-  const rawBody = Buffer.from(await req.arrayBuffer());
+  const body = await req.text();
+
+  if (!sig)
+    return NextResponse.json(
+      { ok: false, error: "Missing signature" },
+      { status: 400 },
+    );
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(
+      body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!,
+    );
   } catch (err) {
-    console.error("Stripe webhook signature error:", err);
-    return new NextResponse("Invalid signature", { status: 400 });
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { ok: false, error: `Webhook error: ${errorMsg}` },
+      { status: 400 },
+    );
   }
 
-  // Idempotency: check if event already processed
-  const db = adminDb();
-  const eventRef = db.collection("stripeEvents").doc(event.id);
-  const eventDoc = await eventRef.get();
-  if (eventDoc.exists) {
-    const msg = `Duplicate event received: ${event.id} (${event.type})`;
-    console.log(msg);
-    logToFile(msg);
-    return NextResponse.json({ received: true, duplicate: true });
+  // You must set workspaceId as metadata on checkout session/subscription
+  const obj = event.data.object as unknown as { [key: string]: any };
+  const workspaceId =
+    (obj && typeof obj === "object" && obj.metadata?.workspaceId) ||
+    (obj &&
+      typeof obj === "object" &&
+      obj.subscription_details?.metadata?.workspaceId) ||
+    (obj &&
+      typeof obj === "object" &&
+      obj.lines?.data?.[0]?.metadata?.workspaceId);
+
+  if (!workspaceId) {
+    // Don’t fail the webhook; log it
+    return NextResponse.json({
+      ok: true,
+      note: "No workspaceId metadata found",
+    });
   }
-  await eventRef.set({ processedAt: new Date(), type: event.type });
 
-  // Logging
-  const msg = `Stripe event received: ${event.id} (${event.type})`;
-  console.log(msg);
-  logToFile(msg);
+  const billingRef = adminDb.collection("billing").doc(workspaceId);
 
-  const handleSub = async (sub: Stripe.Subscription) => {
-    const customerId = String(sub.customer);
-    try {
-      // Always resolve workspaceId from customer metadata (most reliable)
-      const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
-      const workspaceId = customer.metadata?.workspaceId || sub.metadata?.workspaceId;
-
-      if (!workspaceId) {
-        const warnMsg = `No workspaceId found for customer ${customerId}, subscription ${sub.id}`;
-        console.warn(warnMsg);
-        logToFile(warnMsg);
-        return;
-      }
-
-      // Extract planKey from Stripe price metadata or lookup_key
-      const mainPrice = sub.items?.data[0]?.price;
-      const planKey = mainPrice ? (mainPrice.metadata?.plan_key || mainPrice.lookup_key || mainPrice.id) : undefined;
-      const s = sub as StripeSubscriptionSnakeCase;
-      await db.collection("workspaces").doc(workspaceId).set(
+  switch (event.type) {
+    case "customer.subscription.created":
+    case "customer.subscription.updated": {
+      const sub = event.data.object as Stripe.Subscription;
+      const planId =
+        typeof sub.metadata?.planId === "string" ? sub.metadata.planId : "pro";
+      const isActive = ["active", "trialing"].includes(sub.status);
+      await billingRef.set(
         {
-          planKey,
-          billingStatus: sub.status,
-          stripeCustomerId: customerId,
+          workspaceId,
+          planId,
+          isActive,
+          stripeCustomerId:
+            typeof sub.customer === "string"
+              ? sub.customer
+              : (sub.customer as Stripe.Customer)?.id,
           stripeSubscriptionId: sub.id,
-          currentPeriodStart: s.current_period_start ? new Date(s.current_period_start * 1000) : null,
-          currentPeriodEnd: s.current_period_end ? new Date(s.current_period_end * 1000) : null,
-          cancelAtPeriodEnd: !!s.cancel_at_period_end,
-          billingCycleAnchor: s.billing_cycle_anchor ? new Date(s.billing_cycle_anchor * 1000) : null,
+          currentPeriodEnd: new Date(
+            typeof (
+              sub as Stripe.Subscription & { current_period_end?: number }
+            ).current_period_end === "number"
+              ? (sub as Stripe.Subscription & { current_period_end: number })
+                  .current_period_end * 1000
+              : 0,
+          ),
           updatedAt: new Date(),
         },
-        { merge: true }
+        { merge: true },
       );
-      // Instantly sync AI policy with plan changes
-      if (planKey) {
-        const { updateAIPolicyForPlan } = await import("@/lib/aiPolicy");
-        await updateAIPolicyForPlan(workspaceId, planKey);
-      }
-    } catch (err) {
-      console.error(`Error handling subscription for customer ${customerId}:`, err);
+      await writeBillingAuditLog({
+        workspaceId,
+        action: event.type,
+        meta: {
+          planId,
+          stripeSubscriptionId: sub.id,
+          status: sub.status,
+        },
+      });
+      break;
     }
-  };
-
-  try {
-    switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
-        await handleSub(sub);
-        break;
-      }
-
-      // Optional: payment failures (keeps UI accurate)
-      case "invoice.payment_failed":
-      case "invoice.payment_succeeded": {
-        // Usually a subscription.updated also fires, but you can log/audit here.
-        const invoiceMsg = `Invoice event: ${event.type} for invoice ${event.data.object['id']}`;
-        console.log(invoiceMsg);
-        logToFile(invoiceMsg);
-        break;
-      }
-
-      default:
-        const unhandledMsg = `Unhandled event type: ${event.type}`;
-        console.log(unhandledMsg);
-        logToFile(unhandledMsg);
+    case "customer.subscription.deleted": {
+      await billingRef.set(
+        { workspaceId, isActive: false, updatedAt: new Date() },
+        { merge: true },
+      );
+      await writeBillingAuditLog({
+        workspaceId,
+        action: event.type,
+        meta: {},
+      });
+      break;
     }
-  } catch (err) {
-    console.error(`Error processing event ${event.id}:`, err);
-    // Still return 200 to avoid Stripe retries unless you want them
+    case "invoice.payment_failed": {
+      await billingRef.set(
+        {
+          workspaceId,
+          isActive: false,
+          updatedAt: new Date(),
+          lastPaymentFailedAt: new Date(),
+        },
+        { merge: true },
+      );
+      await writeBillingAuditLog({
+        workspaceId,
+        action: event.type,
+        meta: {},
+      });
+      break;
+    }
+    case "invoice.payment_succeeded": {
+      await billingRef.set(
+        {
+          workspaceId,
+          isActive: true,
+          updatedAt: new Date(),
+          lastPaymentSucceededAt: new Date(),
+        },
+        { merge: true },
+      );
+      await writeBillingAuditLog({
+        workspaceId,
+        action: event.type,
+        meta: {},
+      });
+      break;
+    }
   }
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json({ ok: true });
 }

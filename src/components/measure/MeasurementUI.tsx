@@ -1,17 +1,17 @@
 /**
  * Complete Measurement UI
- * 
+ *
  * Orchestrates device pairing, sessions, and floor plan drawing
  */
 
 "use client";
 
-import React, { useState } from "react";
+import type { MeasureGeometry, MeasureReading } from "@/types/measureSchema";
+import { useState } from "react";
+import { FloorPlanCanvas } from "./FloorPlanCanvas";
 import { LeicaDevicePairing } from "./LeicaDevicePairing";
 import { MeasurementSession } from "./MeasurementSession";
-import { FloorPlanCanvas } from "./FloorPlanCanvas";
 import { PDFExport } from "./PDFExport";
-import type { MeasureReading, MeasureGeometry } from "@/types/measureSchema";
 
 interface MeasurementUIProps {
   workspaceId: string;
@@ -30,8 +30,12 @@ export function MeasurementUI({
 }: MeasurementUIProps) {
   const [currentStep, setCurrentStep] = useState<Step>("device");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [readings, setReadings] = useState<(MeasureReading & { id: string })[]>([]);
-  const [geometry, setGeometry] = useState<(MeasureGeometry & { id: string }) | null>(null);
+  const [readings, setReadings] = useState<(MeasureReading & { id: string })[]>(
+    [],
+  );
+  const [geometry, setGeometry] = useState<
+    (MeasureGeometry & { id: string }) | null
+  >(null);
 
   function handleDevicePaired() {
     setCurrentStep("session");
@@ -54,7 +58,7 @@ export function MeasurementUI({
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Square Measure™</h1>
-        <p className="text-gray-600">Professional laser measurement system</p>
+        <p className="text-muted">Professional laser measurement system</p>
       </div>
 
       {/* Progress Steps */}
@@ -94,8 +98,8 @@ export function MeasurementUI({
                   currentStep === "session"
                     ? "bg-blue-600 text-white"
                     : currentStep === "canvas"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-300 text-gray-600"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-300 text-muted"
                 }`}
               >
                 2
@@ -122,7 +126,7 @@ export function MeasurementUI({
                 className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
                   currentStep === "canvas"
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-300 text-gray-600"
+                    : "bg-gray-300 text-muted"
                 }`}
               >
                 3
@@ -137,7 +141,7 @@ export function MeasurementUI({
       </div>
 
       {/* Content */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className="bg-white text-slate-900 border border-gray-200 rounded-lg shadow-sm">
         {currentStep === "device" && (
           <div className="p-6">
             <LeicaDevicePairing
@@ -178,31 +182,31 @@ export function MeasurementUI({
 
       {/* Summary Panel */}
       {geometry && (
-        <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+        <div className="mt-6 bg-gradient-to-r from-accent-success to-accent-info border border-green-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-green-900 mb-4">
             Measurement Complete ✓
           </h3>
           <div className="grid grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-600">Area</p>
+              <p className="text-sm text-muted">Area</p>
               <p className="text-2xl font-bold text-green-900">
                 {(geometry.calculations.area / 144).toFixed(1)} sq ft
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Perimeter</p>
+              <p className="text-sm text-muted">Perimeter</p>
               <p className="text-2xl font-bold text-green-900">
                 {(geometry.calculations.perimeter / 12).toFixed(1)} ft
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Baseboard</p>
+              <p className="text-sm text-muted">Baseboard</p>
               <p className="text-2xl font-bold text-green-900">
                 {(geometry.calculations.baseboardLf || 0).toFixed(1)} LF
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Confidence</p>
+              <p className="text-sm text-muted">Confidence</p>
               <p className="text-2xl font-bold text-green-900">
                 {geometry.confidence.score}%
               </p>

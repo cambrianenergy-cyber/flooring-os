@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 export default function OnboardingStep3Page() {
-  const [primaryCity, setPrimaryCity] = useState("");
+  const [baseAddress, setBaseAddress] = useState("");
   const [serviceRadius, setServiceRadius] = useState("25");
   const [additionalCities, setAdditionalCities] = useState("");
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -13,11 +13,11 @@ export default function OnboardingStep3Page() {
     .map(city => city.trim())
     .filter(city => city.length > 0);
   
-  const totalCities = [primaryCity, ...citiesList].filter(Boolean).length;
+  const totalCities = citiesList.length + (baseAddress ? 1 : 0);
   
   // Autosave functionality
   useEffect(() => {
-    const formData = { primaryCity, serviceRadius, additionalCities };
+    const formData = { baseAddress, serviceRadius, additionalCities };
     const hasData = Object.values(formData).some(val => val !== '');
     if (!hasData) return;
     
@@ -33,7 +33,7 @@ export default function OnboardingStep3Page() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [primaryCity, serviceRadius, additionalCities]);
+  }, [baseAddress, serviceRadius, additionalCities]);
   
   // Load saved data
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function OnboardingStep3Page() {
       const saved = localStorage.getItem('onboarding_step3');
       if (saved) {
         const data = JSON.parse(saved);
-        setPrimaryCity(data.primaryCity || '');
+        setBaseAddress(data.baseAddress || '');
         setServiceRadius(data.serviceRadius || '25');
         setAdditionalCities(data.additionalCities || '');
       }
@@ -78,24 +78,24 @@ export default function OnboardingStep3Page() {
               </div>
             </div>
 
-            {/* Primary Service Area Section */}
+            {/* Base Location Section */}
             <div className="mb-6">
               <div className="flex items-center mb-4">
-                <span className="text-2xl mr-2">📍</span>
-                <h2 className="text-lg font-semibold text-slate-900">Primary Service Area</h2>
+                <span className="text-2xl mr-2">🏢</span>
+                <h2 className="text-lg font-semibold text-slate-900">Base Location</h2>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-700">Primary City/Location *</label>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">Business Headquarters Address *</label>
                   <input
                     type="text"
-                    value={primaryCity}
-                    onChange={(e) => setPrimaryCity(e.target.value)}
+                    value={baseAddress}
+                    onChange={(e) => setBaseAddress(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    placeholder="e.g., Los Angeles, CA"
+                    placeholder="123 Main Street, Los Angeles, CA 90001"
                   />
-                  <p className="mt-1.5 text-xs text-slate-500">Your main business location or service hub.</p>
+                  <p className="mt-1.5 text-xs text-slate-500">Your primary business address. This is the center point for your service radius.</p>
                 </div>
                 
                 <div>
@@ -112,7 +112,7 @@ export default function OnboardingStep3Page() {
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">miles</span>
                   </div>
-                  <p className="mt-1.5 text-xs text-slate-500">How far from your primary location do you travel for jobs?</p>
+                  <p className="mt-1.5 text-xs text-slate-500">How far from your headquarters do you travel for jobs? (e.g., "{serviceRadius} miles from {baseAddress || 'your location'}")</p>
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function OnboardingStep3Page() {
               
               {/* Map Container */}
               <div className="bg-white rounded-lg border-2 border-slate-200 overflow-hidden mb-4">
-                {primaryCity ? (
+                {baseAddress ? (
                   <div className="relative">
                     {/* Embedded Google Maps */}
                     <iframe
@@ -162,18 +162,18 @@ export default function OnboardingStep3Page() {
                       style={{ border: 0 }}
                       loading="lazy"
                       allowFullScreen
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(primaryCity)}&zoom=${Math.max(8, 14 - Math.floor(parseInt(serviceRadius) / 10))}`}
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(baseAddress)}&zoom=${Math.max(8, 14 - Math.floor(parseInt(serviceRadius) / 10))}`}
                     ></iframe>
                     
                     {/* Overlay with service radius indicator */}
                     <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
-                        <span className="text-xs font-semibold text-slate-700">{primaryCity}</span>
+                        <span className="text-xs font-semibold text-slate-700 truncate">{baseAddress}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full border-2 border-blue-400 bg-blue-100"></div>
-                        <span className="text-xs text-slate-600">{serviceRadius} mile radius</span>
+                        <span className="text-xs text-slate-600">{serviceRadius} mile radius from base</span>
                       </div>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ export default function OnboardingStep3Page() {
                   <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-slate-50">
                     <div className="text-4xl mb-3">🗺️</div>
                     <p className="text-sm font-medium text-slate-700 mb-1">Your Service Map</p>
-                    <p className="text-xs text-slate-500">Enter your primary city to see the map preview</p>
+                    <p className="text-xs text-slate-500">Enter your headquarters address to see the map preview</p>
                   </div>
                 )}
               </div>

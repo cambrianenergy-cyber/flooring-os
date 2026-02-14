@@ -1,10 +1,24 @@
 "use client";
 import { useState, useEffect } from "react";
 
+interface TravelZone {
+  id: number;
+  name: string;
+  minMiles: number;
+  maxMiles: number;
+  fee: string;
+}
+
 export default function OnboardingStep3Page() {
   const [baseAddress, setBaseAddress] = useState("");
   const [serviceRadius, setServiceRadius] = useState("25");
   const [additionalCities, setAdditionalCities] = useState("");
+  const [enableTravelZones, setEnableTravelZones] = useState(false);
+  const [travelZones, setTravelZones] = useState<TravelZone[]>([
+    { id: 1, name: "Zone 1", minMiles: 0, maxMiles: 25, fee: "0" },
+    { id: 2, name: "Zone 2", minMiles: 25, maxMiles: 50, fee: "150" },
+    { id: 3, name: "Zone 3", minMiles: 50, maxMiles: 75, fee: "300" },
+  ]);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   
   // Parse cities for map preview
@@ -17,8 +31,8 @@ export default function OnboardingStep3Page() {
   
   // Autosave functionality
   useEffect(() => {
-    const formData = { baseAddress, serviceRadius, additionalCities };
-    const hasData = Object.values(formData).some(val => val !== '');
+    const formData = { baseAddress, serviceRadius, additionalCities, enableTravelZones, travelZones };
+    const hasData = Object.values(formData).some(val => val !== '' && val !== false);
     if (!hasData) return;
     
     setSaveStatus('saving');
@@ -33,7 +47,7 @@ export default function OnboardingStep3Page() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [baseAddress, serviceRadius, additionalCities]);
+  }, [baseAddress, serviceRadius, additionalCities, enableTravelZones, travelZones]);
   
   // Load saved data
   useEffect(() => {
@@ -44,11 +58,20 @@ export default function OnboardingStep3Page() {
         setBaseAddress(data.baseAddress || '');
         setServiceRadius(data.serviceRadius || '25');
         setAdditionalCities(data.additionalCities || '');
+        setEnableTravelZones(data.enableTravelZones || false);
+        if (data.travelZones) setTravelZones(data.travelZones);
       }
     } catch (error) {
       console.error('Load failed:', error);
     }
   }, []);
+  
+  // Update travel zone
+  const updateZone = (id: number, field: keyof TravelZone, value: string | number) => {
+    setTravelZones(zones => zones.map(zone => 
+      zone.id === id ? { ...zone, [field]: value } : zone
+    ));
+  };
   
   return (
     <div className="max-w-6xl mx-auto">
@@ -115,6 +138,101 @@ export default function OnboardingStep3Page() {
                   <p className="mt-1.5 text-xs text-slate-500">How far from your headquarters do you travel for jobs? (e.g., "{serviceRadius} miles from {baseAddress || 'your location'}")</p>
                 </div>
               </div>
+            </div>
+
+            {/* Travel Zones Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2">📏</span>
+                  <h2 className="text-lg font-semibold text-slate-900">Travel Zones</h2>
+                </div>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Intelligent Pricing</span>
+              </div>
+              
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setEnableTravelZones(!enableTravelZones)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        enableTravelZones ? 'bg-blue-600' : 'bg-slate-300'
+                      }`}
+                      role="switch"
+                      aria-checked={enableTravelZones}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          enableTravelZones ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-slate-900 mb-1">Enable Tiered Travel Pricing</div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Automatically adjust estimate prices based on distance from your headquarters. Perfect for managing profitability across your service area.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {enableTravelZones && (
+                <div className="space-y-3">
+                  {travelZones.map((zone) => (
+                    <div key={zone.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors">
+                      <div className="flex items-center gap-3 mb-3">
+                        <input
+                          type="text"
+                          value={zone.name}
+                          onChange={(e) => updateZone(zone.id, 'name', e.target.value)}
+                          className="flex-1 px-3 py-1.5 text-sm font-semibold border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Zone Name"
+                        />
+                        <span className="text-xs text-slate-500 font-medium">Travel Fee:</span>
+                        <div className="relative w-28">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">$</span>
+                          <input
+                            type="number"
+                            value={zone.fee}
+                            onChange={(e) => updateZone(zone.id, 'fee', e.target.value)}
+                            className="w-full pl-6 pr-3 py-1.5 text-sm font-bold border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="0"
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <input
+                            type="number"
+                            value={zone.minMiles}
+                            onChange={(e) => updateZone(zone.id, 'minMiles', parseInt(e.target.value) || 0)}
+                            className="w-20 px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                            min="0"
+                          />
+                          <span className="text-xs text-slate-500">to</span>
+                          <input
+                            type="number"
+                            value={zone.maxMiles}
+                            onChange={(e) => updateZone(zone.id, 'maxMiles', parseInt(e.target.value) || 0)}
+                            className="w-20 px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                            min="0"
+                          />
+                          <span className="text-xs text-slate-500 font-medium">miles from base</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-xs text-green-800 leading-relaxed">
+                      ✅ <strong>Smart Pricing Active:</strong> Estimates will automatically include travel fees based on customer location. This improves profitability and helps you qualify leads upfront.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Additional Cities Section */}
@@ -216,6 +334,29 @@ export default function OnboardingStep3Page() {
                   </div>
                 )}
               </div>
+              
+              {/* Travel Zones Preview */}
+              {enableTravelZones && travelZones.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-xs font-medium text-slate-600 mb-2">Travel Pricing Zones:</div>
+                  <div className="space-y-2">
+                    {travelZones.map((zone) => (
+                      <div key={zone.id} className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            zone.fee === '0' ? 'bg-green-500' : 'bg-blue-500'
+                          }`}></div>
+                          <span className="text-xs font-medium text-slate-700">{zone.name}</span>
+                          <span className="text-xs text-slate-500">({zone.minMiles}–{zone.maxMiles} mi)</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-900">
+                          {zone.fee === '0' ? 'No fee' : `+$${zone.fee}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <p className="text-xs text-blue-800 leading-relaxed">

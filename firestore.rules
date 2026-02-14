@@ -123,6 +123,7 @@ service cloud.firestore {
     // --- Customers ---
     match /customers/{customerId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create, update: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
       allow delete: if isSignedIn() && isAdmin(resource.data.workspaceId);
     }
@@ -144,6 +145,7 @@ service cloud.firestore {
     // --- LEADS PIPELINE ---
     match /leads/{id} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
       allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
     }
@@ -151,6 +153,7 @@ service cloud.firestore {
     // --- Activities ---
     match /activities/{id} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isMember(request.resource.data.workspaceId);
       allow update, delete: if isSignedIn() && isAdmin(resource.data.workspaceId) && sameWorkspace();
     }
@@ -158,6 +161,7 @@ service cloud.firestore {
     // --- Jobs ---
     match /jobs/{jobId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
 
       // --- Change Orders ---
@@ -176,18 +180,21 @@ service cloud.firestore {
     // --- Estimates ---
     match /estimates/{estimateId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
     }
 
     // --- Invoices ---
     match /invoices/{invoiceId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
     }
 
     // --- Reviews ---
     match /reviews/{reviewId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow list: if isSignedIn();
       allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
     }
 

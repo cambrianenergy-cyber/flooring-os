@@ -19,8 +19,13 @@ export function WorkflowProvider({
   // Prefer explicit prop, else use workspaceContext
   const { workspace } = useWorkspace();
   const workspaceId = propWorkspaceId || workspace?.id;
-  if (!workspaceId)
-    throw new Error("Missing workspaceId in WorkflowProvider context");
+  
+  // If no workspaceId, render children without workflow context
+  // This allows routing pages like /app to work before workspace is determined
+  if (!workspaceId) {
+    return <>{children}</>;
+  }
+
   const {
     state: firestoreState,
     setState: saveState,

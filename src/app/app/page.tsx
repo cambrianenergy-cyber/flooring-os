@@ -2,9 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function AppPage() {
   const router = useRouter();
@@ -17,46 +16,11 @@ export default function AppPage() {
         return;
       }
 
-      try {
-        // Check if user has completed onboarding
-        const userDoc = await getDocs(
-          query(collection(db, "users"), where("uid", "==", user.uid))
-        );
-
-        if (!userDoc.empty) {
-          const userData = userDoc.docs[0].data();
-          
-          // If onboarding not complete, redirect to onboarding
-          if (!userData.onboardingComplete) {
-            router.replace("/onboarding");
-            return;
-          }
-        }
-
-        // Get user's workspaces
-        const workspacesQuery = query(
-          collection(db, "workspaces"),
-          where("members", "array-contains", user.uid)
-        );
-        const workspacesSnapshot = await getDocs(workspacesQuery);
-
-        if (workspacesSnapshot.empty) {
-          // No workspace found, redirect to onboarding
-          router.replace("/onboarding");
-          return;
-        }
-
-        // Get the first workspace (or primary workspace)
-        const firstWorkspace = workspacesSnapshot.docs[0];
-        const workspaceId = firstWorkspace.id;
-
-        // Redirect to workspace dashboard
-        router.replace(`/app/${workspaceId}/dashboard`);
-      } catch (error) {
-        console.error("Error loading workspace:", error);
-        // Fallback to dashboard
-        router.replace("/dashboard");
-      }
+      // Use the user's UID as workspaceId (as created in ClientRootLayout)
+      const workspaceId = user.uid;
+      
+      // Redirect to workspace dashboard
+      router.replace(`/app/${workspaceId}/dashboard`);
     });
 
     return () => unsubscribe();

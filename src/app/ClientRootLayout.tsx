@@ -7,7 +7,7 @@ import { loadUserSubscription } from "@/lib/subscriptionManager";
 import { TierProvider } from "@/lib/useTier";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 interface ClientRootLayoutProps {
@@ -27,13 +27,21 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
   );
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/signup', '/test-login', '/'];
 
   // Set up auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
-        router.push("/login");
+        // Only redirect to login if we're not already on a public route
+        if (!publicRoutes.some(route => pathname?.startsWith(route))) {
+          router.push("/login");
+        }
+        setLoading(false);
         return;
       }
       // Unified workspace logic for all users
@@ -96,7 +104,7 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
       });
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, pathname]);
 
   // Load subscription when user changes
   useEffect(() => {

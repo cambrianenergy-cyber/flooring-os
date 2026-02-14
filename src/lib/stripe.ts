@@ -10,7 +10,7 @@ export type StripeSubscription = Stripe.Subscription & {
 };
 
 import Stripe from "stripe";
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-12-15.clover" });
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-01-28.clover" });
 
 // Export Stripe environment variables for use in webhook/event logic
 export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;

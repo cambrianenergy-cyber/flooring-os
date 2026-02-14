@@ -31,6 +31,9 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
 
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/signup', '/test-login', '/'];
+  
+  // Routes for authenticated users but don't require full workspace setup
+  const authRoutes = ['/onboarding', '/billing'];
 
   // Set up auth state listener
   useEffect(() => {
@@ -70,32 +73,6 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
           ...wsData,
         };
         localStorage.setItem("workspace", JSON.stringify(wsObj));
-      }
-      // Onboarding check: redirect to /onboarding if not complete
-      try {
-        const onboardingRef = doc(
-          db,
-          "workspaces",
-          firebaseUser.uid,
-          "onboarding",
-          "state",
-        );
-        const onboardingSnap = await getDoc(onboardingRef);
-        let onboardingComplete = false;
-        if (onboardingSnap.exists()) {
-          const onboardingData = onboardingSnap.data();
-          onboardingComplete =
-            onboardingData.status === "complete" ||
-            Boolean(onboardingData.complete);
-        }
-        if (!onboardingComplete) {
-          router.push("/onboarding");
-          return;
-        }
-      } catch (err) {
-        // If onboarding check fails, send to onboarding as fallback
-        router.push("/onboarding");
-        return;
       }
       setUser({
         uid: firebaseUser.uid,
@@ -177,6 +154,11 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
 
   // If not authenticated but on a public route, render children anyway
   if (!user && publicRoutes.some(route => pathname?.startsWith(route))) {
+    return <>{children}</>;
+  }
+
+  // If authenticated but on auth-only routes (onboarding/billing), render without full context
+  if (user && authRoutes.some(route => pathname?.startsWith(route))) {
     return <>{children}</>;
   }
 

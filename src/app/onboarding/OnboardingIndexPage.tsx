@@ -83,5 +83,13 @@ export default function OnboardingIndexPage() {
     redirectToCurrentStep();
   }, [user, loading, router]);
 
-  return null;
+  // Show loading state instead of blank page
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+        <p className="mt-6 text-lg text-slate-700">Preparing your workspace...</p>
+      </div>
+    </div>
+  );
 }

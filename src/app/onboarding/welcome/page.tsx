@@ -71,17 +71,79 @@ export default function OnboardingWelcomePage() {
           track leads, manage crews, and close jobs — all in one place.
         </p>
         
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-3">What you'll set up:</h2>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Company profile and information</li>
-            <li>Service area and coverage</li>
-            <li>Team members and roles</li>
-            <li>Services and pricing</li>
-            <li>Lead intake and estimates</li>
-            <li>Product catalog</li>
-            <li>Integrations</li>
-          </ul>
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">What you'll set up:</h2>
+          <div className="grid gap-3">
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">🏢</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Company Profile</h3>
+                  <p className="text-sm text-slate-600">Business info, branding, contact details</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">📍</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Service Area</h3>
+                  <p className="text-sm text-slate-600">Define coverage zones and travel radius</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">👥</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Team & Roles</h3>
+                  <p className="text-sm text-slate-600">Add estimators, installers, office staff</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">💰</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Services & Pricing</h3>
+                  <p className="text-sm text-slate-600">Configure labor rates and materials</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">📥</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Lead Intake</h3>
+                  <p className="text-sm text-slate-600">Control how jobs enter your pipeline</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">📦</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Product Catalog</h3>
+                  <p className="text-sm text-slate-600">Materials, SKUs, suppliers</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-default">
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">🔌</span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Integrations</h3>
+                  <p className="text-sm text-slate-600">Stripe, email, SMS, etc.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <button

@@ -14,6 +14,49 @@ export default function OnboardingStep2Page() {
   const [ein, setEin] = useState("");
   const [website, setWebsite] = useState("");
   
+  // Smart phone formatting
+  const handlePhoneChange = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+    if (match) {
+      const formatted = !match[2] ? match[1] : `(${match[1]}) ${match[2]}${match[3] ? `-${match[3]}` : ''}`;
+      setPhone(formatted);
+    }
+  };
+  
+  // Smart email -> website suggestion
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (value.includes('@') && !website) {
+      const domain = value.split('@')[1];
+      if (domain && domain.includes('.')) {
+        setWebsite(`https://${domain}`);
+      }
+    }
+  };
+  
+  // Smart ZIP -> city/state autofill
+  const handleZipChange = async (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    setZip(cleaned.slice(0, 5));
+    
+    if (cleaned.length === 5) {
+      try {
+        const response = await fetch(`https://api.zippopotam.us/us/${cleaned}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.places && data.places[0]) {
+            setCity(data.places[0]['place name']);
+            setState(data.places[0]['state abbreviation']);
+          }
+        }
+      } catch (error) {
+        // Silent fail - user can still enter manually
+        console.log('ZIP lookup failed:', error);
+      }
+    }
+  };
+  
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -68,7 +111,7 @@ export default function OnboardingStep2Page() {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="(555) 123-4567"
               />
@@ -80,7 +123,7 @@ export default function OnboardingStep2Page() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="contact@company.com"
               />
@@ -141,10 +184,10 @@ export default function OnboardingStep2Page() {
               <input
                 type="text"
                 value={zip}
-                onChange={(e) => setZip(e.target.value)}
+                onChange={(e) => handleZipChange(e.target.value)}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="90210"
-                maxLength={10}
+                maxLength={5}
               />
               <p className="mt-1.5 text-xs text-slate-500">Used for local service area calculations.</p>
             </div>

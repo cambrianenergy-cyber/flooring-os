@@ -31,7 +31,11 @@ export default function OnboardingLayout({
   const router = useRouter();
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <aside className="flex-shrink-0 p-4 bg-white border-r">
+      <aside className="flex-shrink-0 w-80 p-6 bg-white border-r border-slate-200">
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setup Progress</h2>
+          <p className="text-sm text-slate-600">Complete all steps to launch your workspace</p>
+        </div>
         <StepList current={step} />
       </aside>
       <main className="flex-1 flex flex-col p-8">

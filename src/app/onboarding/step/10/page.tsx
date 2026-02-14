@@ -1,7 +1,19 @@
 import React from "react";
 "use client";
+import { useState, useEffect } from "react";
 
 export default function OnboardingStep10Page() {
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  
+  // For step 10, we just show the saved indicator when they interact
+  // You can expand this later to track which integrations are connected
+  useEffect(() => {
+    // Mark as saved immediately for this step since it's optional
+    const saved = localStorage.getItem('onboarding_step10');
+    if (!saved) {
+      localStorage.setItem('onboarding_step10', JSON.stringify({ visited: true }));
+    }
+  }, []);
   return (
     <div className="space-y-6">
       <div className="mb-6">
@@ -13,6 +25,12 @@ export default function OnboardingStep10Page() {
           <div className="text-right">
             <div className="text-sm font-semibold text-blue-600">Step 10 of 11</div>
             <div className="text-xs text-slate-500 mt-1">91% Complete</div>
+            {saveStatus === 'saved' && (
+              <div className="text-xs text-green-600 mt-2 flex items-center justify-end gap-1 transition-opacity duration-300">
+                <span>✔</span>
+                <span className="font-medium">Saved</span>
+              </div>
+            )}
           </div>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">

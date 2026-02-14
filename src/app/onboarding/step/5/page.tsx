@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const COMMON_SERVICES = [
   "Hardwood Installation",
@@ -13,6 +13,37 @@ const COMMON_SERVICES = [
 
 export default function OnboardingStep5Page() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  
+  // Autosave functionality
+  useEffect(() => {
+    if (selectedServices.length === 0) return;
+    setSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      try {
+        localStorage.setItem('onboarding_step5', JSON.stringify({ selectedServices }));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (error) {
+        console.error('Save failed:', error);
+        setSaveStatus('idle');
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [selectedServices]);
+  
+  // Load saved data
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('onboarding_step5');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setSelectedServices(data.selectedServices || []);
+      }
+    } catch (error) {
+      console.error('Load failed:', error);
+    }
+  }, []);
   
   const toggleService = (service: string) => {
     setSelectedServices(prev => 
@@ -33,6 +64,12 @@ export default function OnboardingStep5Page() {
           <div className="text-right">
             <div className="text-sm font-semibold text-blue-600">Step 5 of 11</div>
             <div className="text-xs text-slate-500 mt-1">45% Complete</div>
+            {saveStatus === 'saved' && (
+              <div className="text-xs text-green-600 mt-2 flex items-center justify-end gap-1 transition-opacity duration-300">
+                <span>✔</span>
+                <span className="font-medium">Saved</span>
+              </div>
+            )}
           </div>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">

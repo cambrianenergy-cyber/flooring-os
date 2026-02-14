@@ -16,6 +16,7 @@ export default function OnboardingStep3Page() {
   const [zipCodes, setZipCodes] = useState("");
   const [excludedAreas, setExcludedAreas] = useState("");
   const [excludedZipCodes, setExcludedZipCodes] = useState("");
+  const [leadFilteringMode, setLeadFilteringMode] = useState<'reject' | 'fee' | 'manual'>('manual');
   const [enableTravelZones, setEnableTravelZones] = useState(false);
   const [travelZones, setTravelZones] = useState<TravelZone[]>([
     { id: 1, name: "Zone 1", minMiles: 0, maxMiles: 25, fee: "0" },
@@ -51,7 +52,7 @@ export default function OnboardingStep3Page() {
   
   // Autosave functionality
   useEffect(() => {
-    const formData = { baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, enableTravelZones, travelZones };
+    const formData = { baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, leadFilteringMode, enableTravelZones, travelZones };
     const hasData = Object.values(formData).some(val => val !== '' && val !== false);
     if (!hasData) return;
     
@@ -67,7 +68,7 @@ export default function OnboardingStep3Page() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, enableTravelZones, travelZones]);
+  }, [baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, leadFilteringMode, enableTravelZones, travelZones]);
   
   // Load saved data
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function OnboardingStep3Page() {
         setZipCodes(data.zipCodes || '');
         setExcludedAreas(data.excludedAreas || '');
         setExcludedZipCodes(data.excludedZipCodes || '');
+        setLeadFilteringMode(data.leadFilteringMode || 'manual');
         setEnableTravelZones(data.enableTravelZones || false);
         if (data.travelZones) setTravelZones(data.travelZones);
       }
@@ -460,6 +462,125 @@ export default function OnboardingStep3Page() {
                 )}
               </div>
             </div>
+            
+            {/* Lead Filtering Logic Section */}
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2">📩</span>
+                  <h2 className="text-lg font-semibold text-slate-900">Lead Filtering Logic</h2>
+                </div>
+                <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded font-medium">🔗 Connects to Lead Intake</span>
+              </div>
+              
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg border border-emerald-200 mb-4">
+                <p className="text-xs text-emerald-900 leading-relaxed">
+                  <strong>🎯 Smart Lead Routing:</strong> Define how Square OS should handle leads from outside your defined service area. This connects directly to your Lead Intake system (Step 7).
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Option 1: Auto-reject */}
+                <label
+                  className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    leadFilteringMode === 'reject'
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="leadFiltering"
+                    value="reject"
+                    checked={leadFilteringMode === 'reject'}
+                    onChange={(e) => setLeadFilteringMode(e.target.value as 'reject')}
+                    className="mt-1 w-4 h-4 text-red-600 focus:ring-2 focus:ring-red-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-slate-900">Automatically Reject Out-of-Area Leads</span>
+                      <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">Strict</span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Leads from outside your service area will be automatically declined. Saves time but may miss opportunities.
+                    </p>
+                  </div>
+                </label>
+                
+                {/* Option 2: Apply fee */}
+                <label
+                  className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    leadFilteringMode === 'fee'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="leadFiltering"
+                    value="fee"
+                    checked={leadFilteringMode === 'fee'}
+                    onChange={(e) => setLeadFilteringMode(e.target.value as 'fee')}
+                    className="mt-1 w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-slate-900">Allow But Apply Out-of-Area Fee</span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">Recommended</span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Accept leads from extended areas but automatically add travel fees. Maximizes revenue while managing profitability.
+                    </p>
+                  </div>
+                </label>
+                
+                {/* Option 3: Manual approval */}
+                <label
+                  className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    leadFilteringMode === 'manual'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="leadFiltering"
+                    value="manual"
+                    checked={leadFilteringMode === 'manual'}
+                    onChange={(e) => setLeadFilteringMode(e.target.value as 'manual')}
+                    className="mt-1 w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-slate-900">Require Manual Approval</span>
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">Flexible</span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Review each out-of-area lead individually before accepting. Full control but requires more time investment.
+                    </p>
+                  </div>
+                </label>
+              </div>
+              
+              {/* Active Policy Display */}
+              <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {leadFilteringMode === 'reject' && <span className="text-2xl">🚫</span>}
+                    {leadFilteringMode === 'fee' && <span className="text-2xl">💰</span>}
+                    {leadFilteringMode === 'manual' && <span className="text-2xl">👁️</span>}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-slate-700 mb-1">Active Policy:</div>
+                    <div className="text-sm font-bold text-slate-900">
+                      {leadFilteringMode === 'reject' && 'Auto-reject out-of-area leads'}
+                      {leadFilteringMode === 'fee' && 'Accept with automatic travel fee adjustment'}
+                      {leadFilteringMode === 'manual' && 'Manual review required for out-of-area leads'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -530,6 +651,24 @@ export default function OnboardingStep3Page() {
                     <span className="text-sm font-bold text-red-600">{excludedAreasList.length + excludedZipCodesList.length}</span>
                   </div>
                 )}
+                
+                {/* Lead Filtering Policy */}
+                <div className={`p-3 rounded-lg border ${
+                  leadFilteringMode === 'reject' ? 'bg-red-50 border-red-200' :
+                  leadFilteringMode === 'fee' ? 'bg-blue-50 border-blue-200' :
+                  'bg-purple-50 border-purple-200'
+                }`}>
+                  <div className="text-xs font-medium text-slate-600 mb-1.5">Lead Filtering:</div>
+                  <div className={`text-xs font-bold ${
+                    leadFilteringMode === 'reject' ? 'text-red-700' :
+                    leadFilteringMode === 'fee' ? 'text-blue-700' :
+                    'text-purple-700'
+                  }`}>
+                    {leadFilteringMode === 'reject' && '🚫 Auto-reject out-of-area'}
+                    {leadFilteringMode === 'fee' && '💰 Apply travel fee'}
+                    {leadFilteringMode === 'manual' && '👁️ Manual review'}
+                  </div>
+                </div>
                 
                 {citiesList.length > 0 && (
                   <div className="p-3 bg-white rounded-lg border border-slate-200">

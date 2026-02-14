@@ -21,7 +21,9 @@ export default function OnboardingWelcomePage() {
   
   return (
     <OnboardingLayout step={0}>
-      <div className="max-w-2xl mx-auto p-8">
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* Left Column - Main Content */}
+        <div className="flex-1 max-w-2xl p-8 mx-auto lg:mx-0 lg:ml-auto lg:mr-8">
         {/* Progress Indicator */}
         <div className="mb-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
           <div className="flex items-center justify-between mb-4">
@@ -164,6 +166,30 @@ export default function OnboardingWelcomePage() {
         >
           🚀 Build My Workspace
         </button>
+        </div>
+        
+        {/* Right Column - Visual Branding Layer */}
+        <div 
+          className="hidden lg:block lg:w-2/5 relative"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+              linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px, 50px 50px, 10px 10px, 10px 10px',
+            backgroundPosition: '0 0, 0 0, 0 0, 0 0'
+          }}
+        >
+          {/* Gradient Overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-slate-50/20" />
+          
+          {/* Optional: Add a subtle logo or icon */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-5">
+            <div className="text-9xl">🏢</div>
+          </div>
+        </div>
       </div>
     </OnboardingLayout>
   );

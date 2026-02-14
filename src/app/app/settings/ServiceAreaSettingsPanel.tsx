@@ -9,6 +9,16 @@ interface TravelZone {
   fee: string;
 }
 
+interface Crew {
+  id: number;
+  name: string;
+  baseAddress: string;
+  serviceRadius: string;
+  additionalCities: string;
+  zipCodes: string;
+  color: string; // For visual distinction
+}
+
 export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId: string }) {
   const [baseAddress, setBaseAddress] = useState("");
   const [serviceRadius, setServiceRadius] = useState("25");
@@ -26,6 +36,9 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
   const [status, setStatus] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(true);
+  const [multiLocationEnabled, setMultiLocationEnabled] = useState(false);
+  const [crews, setCrews] = useState<Crew[]>([]);
+  const [expandedCrews, setExpandedCrews] = useState<number[]>([]);
 
   // Parse cities and ZIP codes for preview
   const citiesList = additionalCities.split('\n').map(c => c.trim()).filter(c => c.length > 0);
@@ -51,6 +64,8 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           setLeadFilteringMode(data.serviceArea.leadFilteringMode || 'manual');
           setEnableTravelZones(data.serviceArea.enableTravelZones || false);
           if (data.serviceArea.travelZones) setTravelZones(data.serviceArea.travelZones);
+          setMultiLocationEnabled(data.serviceArea.multiLocationEnabled || false);
+          if (data.serviceArea.crews) setCrews(data.serviceArea.crews);
         }
       })
       .catch(() => {
@@ -67,6 +82,8 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           setLeadFilteringMode(data.leadFilteringMode || 'manual');
           setEnableTravelZones(data.enableTravelZones || false);
           if (data.travelZones) setTravelZones(data.travelZones);
+          setMultiLocationEnabled(data.multiLocationEnabled || false);
+          if (data.crews) setCrews(data.crews);
         }
       });
   }, [workspaceId]);
@@ -110,7 +127,9 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
       excludedZipCodes,
       leadFilteringMode,
       enableTravelZones,
-      travelZones
+      travelZones,
+      multiLocationEnabled,
+      crews
     };
 
     try {
@@ -413,6 +432,221 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
             </div>
           </div>
 
+          {/* Crew-Based Service Areas */}
+          <div className="pt-6 border-t border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <span>🚛</span>
+                <span>Crew-Based Service Areas</span>
+                <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-2 py-0.5 rounded font-medium border border-purple-200">
+                  ⚡ Advanced
+                </span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMultiLocationEnabled(!multiLocationEnabled)}
+                className={`text-xs px-3 py-1 rounded font-medium transition-colors ${
+                  multiLocationEnabled
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                {multiLocationEnabled ? '✓ Enabled' : 'Enable'}
+              </button>
+            </div>
+            
+            {multiLocationEnabled && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
+                  <p className="text-xs text-purple-900">
+                    <strong>🎯 Multi-Location Operations:</strong> Assign different service territories to specific crews. 
+                    Perfect for scaling businesses with teams operating in different regions.
+                  </p>
+                </div>
+
+                {/* Crew List */}
+                <div className="space-y-3">
+                  {crews.map((crew) => {
+                    const isExpanded = expandedCrews.includes(crew.id);
+                    const crewCitiesList = crew.additionalCities.split('\n').filter(c => c.trim().length > 0);
+                    const crewZipCodesList = crew.zipCodes.split(/[\n,\s]+/).filter(z => /^\d{5}$/.test(z.trim()));
+                    
+                    return (
+                      <div key={crew.id} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                        {/* Crew Header */}
+                        <div className="p-3 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: crew.color }}></div>
+                              <div className="flex-1">
+                                <input
+                                  type="text"
+                                  value={crew.name}
+                                  onChange={(e) => {
+                                    setCrews(crews.map(c => c.id === crew.id ? { ...c, name: e.target.value } : c));
+                                  }}
+                                  className="font-semibold text-sm text-slate-900 bg-transparent border-0 focus:outline-none focus:ring-0 p-0"
+                                  placeholder="Crew Name"
+                                />
+                                <div className="text-xs text-slate-600 mt-0.5">
+                                  {crew.baseAddress || 'No base location set'} • {crew.serviceRadius} mi radius
+                                  {crewCitiesList.length + crewZipCodesList.length > 0 && (
+                                    <> • {crewCitiesList.length + crewZipCodesList.length} areas</>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  if (isExpanded) {
+                                    setExpandedCrews(expandedCrews.filter(id => id !== crew.id));
+                                  } else {
+                                    setExpandedCrews([...expandedCrews, crew.id]);
+                                  }
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                              >
+                                {isExpanded ? '− Collapse' : '+ Expand'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Remove ${crew.name}? This cannot be undone.`)) {
+                                    setCrews(crews.filter(c => c.id !== crew.id));
+                                  }
+                                }}
+                                className="text-xs text-red-600 hover:text-red-700 font-medium"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Crew Details (Expanded) */}
+                        {isExpanded && (
+                          <div className="p-4 space-y-4">
+                            <div className="grid md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-medium mb-1.5 text-slate-700">
+                                  Base Location
+                                </label>
+                                <input
+                                  type="text"
+                                  value={crew.baseAddress}
+                                  onChange={(e) => {
+                                    setCrews(crews.map(c => c.id === crew.id ? { ...c, baseAddress: e.target.value } : c));
+                                  }}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  placeholder="123 Main St, Dallas, TX"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1.5 text-slate-700">
+                                  Service Radius (miles)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={crew.serviceRadius}
+                                  onChange={(e) => {
+                                    setCrews(crews.map(c => c.id === crew.id ? { ...c, serviceRadius: e.target.value } : c));
+                                  }}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  min="1"
+                                  max="500"
+                                />
+                              </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-medium mb-1.5 text-slate-700">
+                                  Additional Cities
+                                </label>
+                                <textarea
+                                  value={crew.additionalCities}
+                                  onChange={(e) => {
+                                    setCrews(crews.map(c => c.id === crew.id ? { ...c, additionalCities: e.target.value } : c));
+                                  }}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  rows={3}
+                                  placeholder="One city per line"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1.5 text-slate-700">
+                                  ZIP Codes
+                                </label>
+                                <textarea
+                                  value={crew.zipCodes}
+                                  onChange={(e) => {
+                                    setCrews(crews.map(c => c.id === crew.id ? { ...c, zipCodes: e.target.value } : c));
+                                  }}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                                  rows={3}
+                                  placeholder="75001, 75002, 75003"
+                                />
+                              </div>
+                            </div>
+                            {(crewCitiesList.length > 0 || crewZipCodesList.length > 0) && (
+                              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                                <div className="text-xs font-medium text-slate-700 mb-2">Coverage Preview:</div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {crewCitiesList.slice(0, 5).map((city, idx) => (
+                                    <span key={idx} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded border border-blue-200">
+                                      {city}
+                                    </span>
+                                  ))}
+                                  {crewZipCodesList.slice(0, 5).map((zip, idx) => (
+                                    <span key={idx} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded border border-purple-200 font-mono">
+                                      {zip}
+                                    </span>
+                                  ))}
+                                  {crewCitiesList.length + crewZipCodesList.length > 10 && (
+                                    <span className="text-xs text-slate-500">+{crewCitiesList.length + crewZipCodesList.length - 10} more</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Add New Crew Button */}
+                <button
+                  onClick={() => {
+                    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+                    const newCrew: Crew = {
+                      id: Date.now(),
+                      name: `Crew ${String.fromCharCode(65 + crews.length)}`,
+                      baseAddress: '',
+                      serviceRadius: '25',
+                      additionalCities: '',
+                      zipCodes: '',
+                      color: colors[crews.length % colors.length]
+                    };
+                    setCrews([...crews, newCrew]);
+                    setExpandedCrews([...expandedCrews, newCrew.id]);
+                  }}
+                  className="w-full py-2.5 border-2 border-dashed border-purple-300 rounded-lg text-sm font-medium text-purple-600 hover:bg-purple-50 hover:border-purple-400 transition-colors"
+                >
+                  + Add New Crew
+                </button>
+
+                {crews.length > 0 && (
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                    <p className="text-xs text-blue-900">
+                      💡 <strong>Pro Tip:</strong> When a lead comes in, you can assign it to the crew covering that territory. 
+                      Each crew will only see jobs in their assigned area.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Smart Territory Optimization */}
           <div className="pt-6 border-t border-blue-200">
             <div className="flex items-center justify-between mb-4">
@@ -594,7 +828,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
                                 </div>
                                 <div className="text-xs text-green-700">
                                   Your service area configuration is well-optimized for profitability and coverage. 
-                                  We'll continue monitoring and suggest adjustments as market conditions change.
+                                  We&apos;ll continue monitoring and suggest adjustments as market conditions change.
                                 </div>
                               </div>
                             </div>

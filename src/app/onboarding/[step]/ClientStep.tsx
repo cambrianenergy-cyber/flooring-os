@@ -15,13 +15,16 @@ const stepComponents: Record<string, any> = {
   'step-5': dynamic(() => import('../step-5/page'), { ssr: false, loading: () => <div>Loading...</div> }),
   'step-6': dynamic(() => import('../step-6/page'), { ssr: false, loading: () => <div>Loading...</div> }),
   'step-7': dynamic(() => import('../step-7/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '1': dynamic(() => import('../step-1/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '2': dynamic(() => import('../step-2/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '3': dynamic(() => import('../step-3/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '4': dynamic(() => import('../step-4/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '5': dynamic(() => import('../step-5/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '6': dynamic(() => import('../step-6/page'), { ssr: false, loading: () => <div>Loading...</div> }),
-  '7': dynamic(() => import('../step-7/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '2': dynamic(() => import('../step/2/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '3': dynamic(() => import('../step/3/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '4': dynamic(() => import('../step/4/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '5': dynamic(() => import('../step/5/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '6': dynamic(() => import('../step/6/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '7': dynamic(() => import('../step/7/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '8': dynamic(() => import('../step/8/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '9': dynamic(() => import('../step/9/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '10': dynamic(() => import('../step/10/page'), { ssr: false, loading: () => <div>Loading...</div> }),
+  '11': dynamic(() => import('../step/11/page'), { ssr: false, loading: () => <div>Loading...</div> }),
 };
 
 export default function ClientStep({ step }: ClientStepProps) {

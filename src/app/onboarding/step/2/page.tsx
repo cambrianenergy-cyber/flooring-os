@@ -1,8 +1,10 @@
 import React from "react";
 "use client";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function OnboardingStep2Page() {
+  const { user } = useAuth();
   const [companyName, setCompanyName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -15,10 +17,20 @@ export default function OnboardingStep2Page() {
   const [website, setWebsite] = useState("");
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   
+  // Founder Mode: Advanced settings
+  const [multiLocationEnabled, setMultiLocationEnabled] = useState(false);
+  const [enterpriseConfigEnabled, setEnterpriseConfigEnabled] = useState(false);
+  
+  // Check if user is a founder (can be enhanced with custom claims or Firestore role check)
+  const isFounder = user?.email?.includes('finan') || user?.email?.endsWith('@squareos.com') || false;
+  
   // Autosave functionality with debouncing
   useEffect(() => {
-    const formData = { companyName, phone, email, address, city, state, zip, licenseNumber, ein, website };
-    const hasData = Object.values(formData).some(val => val !== '');
+    const formData = { 
+      companyName, phone, email, address, city, state, zip, licenseNumber, ein, website,
+      multiLocationEnabled, enterpriseConfigEnabled
+    };
+    const hasData = Object.values(formData).some(val => val !== '' && val !== false);
     
     if (!hasData) return;
     
@@ -38,7 +50,7 @@ export default function OnboardingStep2Page() {
     }, 1000); // 1 second debounce
     
     return () => clearTimeout(timer);
-  }, [companyName, phone, email, address, city, state, zip, licenseNumber, ein, website]);
+  }, [companyName, phone, email, address, city, state, zip, licenseNumber, ein, website, multiLocationEnabled, enterpriseConfigEnabled]);
   
   // Load saved data on mount
   useEffect(() => {
@@ -56,6 +68,8 @@ export default function OnboardingStep2Page() {
         setLicenseNumber(data.licenseNumber || '');
         setEin(data.ein || '');
         setWebsite(data.website || '');
+        setMultiLocationEnabled(data.multiLocationEnabled || false);
+        setEnterpriseConfigEnabled(data.enterpriseConfigEnabled || false);
       }
     } catch (error) {
       console.error('Load failed:', error);
@@ -281,6 +295,79 @@ export default function OnboardingStep2Page() {
               />
               <p className="mt-1.5 text-xs text-slate-500">Your online presence for customers to learn more about your services.</p>
             </div>
+            
+            {/* Founder Mode: Advanced Settings */}
+            {isFounder && (
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl mr-2">⚡</span>
+                  <h3 className="text-lg font-semibold text-slate-900">Advanced Settings</h3>
+                  <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">Founder Mode</span>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* Multi-Location Toggle */}
+                  <div className="flex items-start justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-purple-300 transition-colors">
+                    <div className="flex-1 pr-4">
+                      <label className="block text-sm font-medium text-slate-900 mb-1 cursor-pointer" htmlFor="multiLocation">
+                        Enable Multi-Location Support
+                      </label>
+                      <p className="text-xs text-slate-600">
+                        Manage multiple branches and service territories from one workspace. Adds location selector to estimates and job tracking.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      id="multiLocation"
+                      onClick={() => setMultiLocationEnabled(!multiLocationEnabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex-shrink-0 ${
+                        multiLocationEnabled ? 'bg-purple-600' : 'bg-slate-300'
+                      }`}
+                      role="switch"
+                      aria-checked={multiLocationEnabled}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          multiLocationEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  
+                  {/* Enterprise Config Toggle */}
+                  <div className="flex items-start justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-purple-300 transition-colors">
+                    <div className="flex-1 pr-4">
+                      <label className="block text-sm font-medium text-slate-900 mb-1 cursor-pointer" htmlFor="enterpriseConfig">
+                        Enable Enterprise Configuration
+                      </label>
+                      <p className="text-xs text-slate-600">
+                        Unlock advanced workflow customization, custom roles & permissions, API access, and white-label options.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      id="enterpriseConfig"
+                      onClick={() => setEnterpriseConfigEnabled(!enterpriseConfigEnabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex-shrink-0 ${
+                        enterpriseConfigEnabled ? 'bg-purple-600' : 'bg-slate-300'
+                      }`}
+                      role="switch"
+                      aria-checked={enterpriseConfigEnabled}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          enterpriseConfigEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                
+                <p className="mt-3 text-xs text-slate-500 italic">
+                  💡 These features are only visible to workspace founders and won't appear for team members.
+                </p>
+              </div>
+            )}
           </div>
         </div>
           </div>

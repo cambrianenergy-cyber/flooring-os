@@ -54,6 +54,12 @@ export default function OnboardingLayout({
               Save & Continue →
             </button>
           </div>
+          <div className="mt-4 text-center">
+            <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5">
+              <span>🔒</span>
+              <span>Your information is secure and encrypted.</span>
+            </p>
+          </div>
         </div>
       </main>
     </div>

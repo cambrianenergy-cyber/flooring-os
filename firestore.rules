@@ -53,12 +53,13 @@ service cloud.firestore {
       // This is needed for onboarding flow
       allow read: if isSignedIn() && (workspaceId == request.auth.uid || isMember(workspaceId));
       allow create: if isSignedIn() && workspaceId == request.auth.uid;
-      allow update, delete: if isAdmin(workspaceId);
+      allow update: if isSignedIn() && (workspaceId == request.auth.uid || isAdmin(workspaceId));
+      allow delete: if isAdmin(workspaceId);
 
       // --- Members subcollection ---
       match /members/{memberId} {
         allow read: if isMember(workspaceId);
-        allow create, update, delete: if isAdmin(workspaceId);
+        allow create, update, delete: if isAdmin(workspaceId) || (isSignedIn() && workspaceId == request.auth.uid);
       }
 
       // --- Invites subcollection ---
@@ -98,10 +99,9 @@ service cloud.firestore {
         allow create, delete: if false; // server-only
       }
 
-      // --- Onboarding state - allow owner to read/write for their own workspace ---
-      // Permissive during onboarding since workspace may not fully exist yet
-      match /onboarding/state {
-        allow read, write: if isSignedIn() && (workspaceId == request.auth.uid || isMember(workspaceId));
+      // --- Onboarding state - FULLY OPEN for now to debug permissions ---
+      match /onboarding/{document=**} {
+        allow read, write, create, update, delete: if isSignedIn() && workspaceId == request.auth.uid;
       }
 
       // --- WorkflowStates (TEMP: open for debugging) ---

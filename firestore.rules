@@ -11,10 +11,10 @@ service cloud.firestore {
     }
     function isMember(workspaceId) {
       return isSignedIn() && (
-        // Check if workspace ID matches user ID (owner)
-        workspaceId == request.auth.uid ||
-        // Check if members subcollection exists
-        exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
+        // Check if workspace ID matches user ID (owner) - FIRST to short-circuit
+        workspaceId == request.auth.uid
+        // NOTE: Removed circular dependency check for members subcollection
+        // Members are added through admin permissions instead
       );
     }
     function isAdmin(workspaceId) {
@@ -58,7 +58,7 @@ service cloud.firestore {
 
       // --- Members subcollection ---
       match /members/{memberId} {
-        allow read: if isMember(workspaceId);
+        allow read: if isSignedIn() && (workspaceId == request.auth.uid || memberId == request.auth.uid);
         allow create, update, delete: if isAdmin(workspaceId) || (isSignedIn() && workspaceId == request.auth.uid);
       }
 

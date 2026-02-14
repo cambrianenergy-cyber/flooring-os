@@ -49,30 +49,37 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
       }
       // Unified workspace logic for all users
       let workspaceId: string | undefined = undefined;
-      const wsRef = doc(db, "workspaces", firebaseUser.uid);
-      let wsSnap = await getDoc(wsRef);
-      if (!wsSnap.exists()) {
-        // Create a workspace for this user if it doesn't exist
-        await setDoc(wsRef, {
-          userId: firebaseUser.uid,
-          email: firebaseUser.email,
-          createdAt: Date.now(),
-          plan: { key: "essentials" },
-          status: "active",
-          members: [firebaseUser.email],
-        });
-        wsSnap = await getDoc(wsRef);
-      }
-      workspaceId = firebaseUser.uid;
-      if (typeof window !== "undefined") {
-        const wsData = wsSnap.data() || {};
-        const wsObj = {
-          id: workspaceId,
-          name: wsData.name || "My Workspace",
-          plan: wsData.plan || { key: "essentials" },
-          ...wsData,
-        };
-        localStorage.setItem("workspace", JSON.stringify(wsObj));
+      try {
+        const wsRef = doc(db, "workspaces", firebaseUser.uid);
+        let wsSnap = await getDoc(wsRef);
+        if (!wsSnap.exists()) {
+          // Create a workspace for this user if it doesn't exist
+          console.log("Creating workspace for user:", firebaseUser.uid);
+          await setDoc(wsRef, {
+            userId: firebaseUser.uid,
+            email: firebaseUser.email,
+            createdAt: Date.now(),
+            plan: { key: "essentials" },
+            status: "active",
+            members: [firebaseUser.email],
+          });
+          wsSnap = await getDoc(wsRef);
+        }
+        workspaceId = firebaseUser.uid;
+        if (typeof window !== "undefined") {
+          const wsData = wsSnap.data() || {};
+          const wsObj = {
+            id: workspaceId,
+            name: wsData.name || "My Workspace",
+            plan: wsData.plan || { key: "essentials" },
+            ...wsData,
+          };
+          localStorage.setItem("workspace", JSON.stringify(wsObj));
+        }
+      } catch (error) {
+        console.error("Error creating/fetching workspace:", error);
+        // Continue anyway with minimal workspace data
+        workspaceId = firebaseUser.uid;
       }
       setUser({
         uid: firebaseUser.uid,

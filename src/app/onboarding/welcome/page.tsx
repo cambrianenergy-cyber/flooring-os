@@ -166,6 +166,11 @@ export default function OnboardingWelcomePage() {
         >
           🚀 Build My Workspace
         </button>
+        
+        {/* Trust Anchor */}
+        <p className="mt-6 text-center text-sm text-slate-500 italic">
+          Trusted by flooring professionals to manage estimates, crews, and revenue in one place.
+        </p>
         </div>
         
         {/* Right Column - Visual Branding Layer */}

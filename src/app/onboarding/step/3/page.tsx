@@ -585,7 +585,8 @@ export default function OnboardingStep3Page() {
                 <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Intelligent Pricing</span>
               </div>
             </div>
-            
+            {/* OLD Sections Below - HIDDEN */}
+            <div style={{display: 'none'}}>
             {/* ZIP Code Targeting Section */}
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -864,6 +865,8 @@ export default function OnboardingStep3Page() {
                 </div>
               </div>
             </div>
+            </div>
+            {/* END OLD Sections - HIDDEN */}
           </div>
         </div>
         

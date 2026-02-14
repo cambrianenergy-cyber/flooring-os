@@ -146,6 +146,18 @@ export default function OnboardingWelcomePage() {
           </div>
         </div>
         
+        {/* Time Estimate + Completion Confidence */}
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 text-slate-600">
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">⏱</span>
+            <span className="text-sm">Takes about 5–7 minutes</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">🔒</span>
+            <span className="text-sm">You can edit everything later</span>
+          </div>
+        </div>
+        
         <button
           onClick={() => router.push("/onboarding/2")}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"

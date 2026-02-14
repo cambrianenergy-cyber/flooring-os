@@ -1,15 +1,15 @@
 const STEPS = [
-  { label: "Welcome", path: "/onboarding/1" },
-  { label: "Company", path: "/onboarding/2-company" },
-  { label: "Service Area", path: "/onboarding/3-service-area" },
-  { label: "Team", path: "/onboarding/4-team" },
-  { label: "Services", path: "/onboarding/5-services" },
-  { label: "Pricing", path: "/onboarding/6-pricing" },
-  { label: "Leads", path: "/onboarding/7-leads" },
-  { label: "Estimates", path: "/onboarding/8-estimates" },
-  { label: "Catalog", path: "/onboarding/9-catalog" },
-  { label: "Integrations", path: "/onboarding/10-integrations" },
-  { label: "Review", path: "/onboarding/11-review" },
+  { label: "Welcome", path: "/onboarding/welcome" },
+  { label: "Company", path: "/onboarding/2" },
+  { label: "Service Area", path: "/onboarding/3" },
+  { label: "Team", path: "/onboarding/4" },
+  { label: "Services", path: "/onboarding/5" },
+  { label: "Pricing", path: "/onboarding/6" },
+  { label: "Leads", path: "/onboarding/7" },
+  { label: "Estimates", path: "/onboarding/8" },
+  { label: "Catalog", path: "/onboarding/9" },
+  { label: "Integrations", path: "/onboarding/10" },
+  { label: "Review", path: "/onboarding/11" },
 ];
 
 export default function StepList({ current }: { current: number }) {

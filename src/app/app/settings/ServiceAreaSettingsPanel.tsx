@@ -185,48 +185,56 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🗺️</span>
-          <h2 className="font-bold text-blue-900 text-lg">Service Area & Territory</h2>
-        </div>
-        <div className="flex items-center gap-3">
-          {status && (
-            <span className="text-sm text-green-600 font-medium">{status}</span>
-          )}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            {isExpanded ? '− Collapse' : '+ Expand'}
-          </button>
+    <div className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden mb-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-sky-50 border-b border-blue-200 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl">
+              🗺️
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-900 text-lg">Service Area & Territory</h2>
+              <p className="text-xs text-slate-600 mt-0.5">Define where your business operates</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {status && (
+              <span className="text-sm text-green-600 font-medium">{status}</span>
+            )}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium bg-white rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
+            >
+              {isExpanded ? '− Collapse' : '+ Expand'}
+            </button>
+          </div>
         </div>
       </div>
 
       {!isExpanded ? (
         // Collapsed view - Summary only
-        <div className="space-y-2">
+        <div className="p-6 bg-slate-50">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
               <div className="text-xs text-slate-600 mb-1">Base Location</div>
               <div className="text-sm font-semibold text-slate-900 truncate">
                 {baseAddress || '—'}
               </div>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
               <div className="text-xs text-slate-600 mb-1">Service Radius</div>
               <div className="text-sm font-semibold text-blue-700">
                 {serviceRadius} miles
               </div>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
               <div className="text-xs text-slate-600 mb-1">Cities + ZIPs</div>
               <div className="text-sm font-semibold text-blue-700">
                 {citiesList.length + zipCodesList.length}
               </div>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-blue-200">
+            <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
               <div className="text-xs text-slate-600 mb-1">Lead Filtering</div>
               <div className="text-sm font-semibold text-slate-900">
                 {leadFilteringMode === 'reject' && '🚫 Auto-reject'}
@@ -235,15 +243,45 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
               </div>
             </div>
           </div>
-          <p className="text-xs text-blue-700 mt-2">
-            ℹ️ Your service area determines lead routing, pricing zones, and estimate calculations. Click <strong>+ Expand</strong> to modify.
+          <p className="text-xs text-slate-500 mt-4 flex items-center gap-1.5">
+            <span>ℹ️</span>
+            <span>Your service area determines lead routing, pricing zones, and estimate calculations. Click <strong>+ Expand</strong> to modify.</span>
           </p>
         </div>
       ) : (
         // Expanded view - Full editing
-        <div className="space-y-6">
-          {/* Base Location */}
-          <div>
+        <div className="p-6 space-y-6 bg-slate-50">
+          {/* Map Preview (if baseAddress exists) */}
+          {baseAddress && (
+            <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                <span>🗺️</span>
+                <span>Territory Map</span>
+              </h3>
+              <div className="relative rounded-lg overflow-hidden border border-slate-200">
+                <iframe
+                  width="100%"
+                  height="300"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(baseAddress)}&zoom=${Math.max(8, 14 - Math.floor(parseInt(serviceRadius) / 10))}`}
+                />
+                <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-200 shadow-md">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                      <span className="text-slate-700 font-medium truncate">{baseAddress.substring(0, 40)}...</span>
+                    </div>
+                    <span className="text-blue-600 font-semibold">{serviceRadius} mi radius</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Headquarters Location */}
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <span>📍</span>
               <span>Headquarters Location</span>
@@ -263,7 +301,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Service Radius Slider */}
-          <div className="pt-6 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <span>📏</span>
               <span>Service Radius</span>
@@ -293,11 +331,11 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Travel Fees (Accordion) */}
-          <div className="pt-6 border-t border-blue-200">
+          <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
             <button
               type="button"
               onClick={() => setShowTravelZones(!showTravelZones)}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:from-slate-100 hover:to-slate-200 transition-colors"
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 transition-colors"
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">💰</span>
@@ -368,7 +406,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Cities & Regions (Tag-based) */}
-          <div className="pt-6 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <span>🏙</span>
               <span>Cities & Regions</span>
@@ -468,7 +506,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Excluded Areas */}
-          <div className="pt-4 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <span>🚫</span>
               <span>Excluded Areas</span>
@@ -502,7 +540,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Lead Filtering */}
-          <div className="pt-4 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <span>📊</span>
               <span>Lead Filtering Logic</span>
@@ -560,7 +598,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Crew-Based Service Areas */}
-          <div className="pt-6 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <span>🚛</span>
@@ -775,7 +813,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
           </div>
 
           {/* Smart Territory Optimization */}
-          <div className="pt-6 border-t border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <span>🤖</span>
@@ -977,14 +1015,20 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
             )}
           </div>
 
-          {/* Save Button */}
-          <div className="pt-4">
-            <button
-              onClick={handleSave}
-              className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-            >
-              Save Service Area Settings
-            </button>
+          {/* Save Button with Security Message */}
+          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                <span>🔒</span>
+                <span>Your information is secure and encrypted.</span>
+              </p>
+              <button
+                onClick={handleSave}
+                className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-md hover:shadow-lg"
+              >
+                Save Service Area Settings
+              </button>
+            </div>
           </div>
         </div>
       )}

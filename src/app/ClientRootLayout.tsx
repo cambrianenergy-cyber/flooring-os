@@ -175,7 +175,12 @@ export function ClientRootLayout({ children }: ClientRootLayoutProps) {
     );
   }
 
-  // If not authenticated, don't render children
+  // If not authenticated but on a public route, render children anyway
+  if (!user && publicRoutes.some(route => pathname?.startsWith(route))) {
+    return <>{children}</>;
+  }
+
+  // If not authenticated and not on a public route, show nothing (will redirect)
   if (!user) {
     return null;
   }

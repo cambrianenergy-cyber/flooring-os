@@ -63,9 +63,12 @@ export default function OnboardingWelcomePage() {
         </div>
 
         <h1 className="text-3xl font-bold mb-4">Welcome to SquareOS</h1>
-        <p className="text-lg mb-6">
-          Let's get your workspace set up. This onboarding will help you configure
-          your business settings, team, and tools.
+        <p className="text-xl font-semibold text-slate-700 mb-3">
+          Build the command center for your flooring business.
+        </p>
+        <p className="text-lg text-slate-600 mb-6">
+          In the next 5 minutes, you'll configure everything needed to run estimates, 
+          track leads, manage crews, and close jobs — all in one place.
         </p>
         
         <div className="mb-6">

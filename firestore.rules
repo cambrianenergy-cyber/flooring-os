@@ -170,6 +170,24 @@ service cloud.firestore {
       }
     }
 
+    // --- Estimates ---
+    match /estimates/{estimateId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+    }
+
+    // --- Invoices ---
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+    }
+
+    // --- Reviews ---
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn() && isMember(resource.data.workspaceId);
+      allow create, update, delete: if isSignedIn() && isAdmin(request.resource.data.workspaceId);
+    }
+
     // --- Catalog ---
     match /catalog/materials/{materialId} {
       allow read: if isSignedIn() && isMember(resource.data.workspaceId);

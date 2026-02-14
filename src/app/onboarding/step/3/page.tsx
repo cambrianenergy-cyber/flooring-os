@@ -13,6 +13,7 @@ export default function OnboardingStep3Page() {
   const [baseAddress, setBaseAddress] = useState("");
   const [serviceRadius, setServiceRadius] = useState("25");
   const [additionalCities, setAdditionalCities] = useState("");
+  const [zipCodes, setZipCodes] = useState("");
   const [enableTravelZones, setEnableTravelZones] = useState(false);
   const [travelZones, setTravelZones] = useState<TravelZone[]>([
     { id: 1, name: "Zone 1", minMiles: 0, maxMiles: 25, fee: "0" },
@@ -27,11 +28,17 @@ export default function OnboardingStep3Page() {
     .map(city => city.trim())
     .filter(city => city.length > 0);
   
+  // Parse ZIP codes
+  const zipCodesList = zipCodes
+    .split(/[\n,\s]+/)
+    .map(zip => zip.trim())
+    .filter(zip => /^\d{5}$/.test(zip));
+  
   const totalCities = citiesList.length + (baseAddress ? 1 : 0);
   
   // Autosave functionality
   useEffect(() => {
-    const formData = { baseAddress, serviceRadius, additionalCities, enableTravelZones, travelZones };
+    const formData = { baseAddress, serviceRadius, additionalCities, zipCodes, enableTravelZones, travelZones };
     const hasData = Object.values(formData).some(val => val !== '' && val !== false);
     if (!hasData) return;
     
@@ -47,7 +54,7 @@ export default function OnboardingStep3Page() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [baseAddress, serviceRadius, additionalCities, enableTravelZones, travelZones]);
+  }, [baseAddress, serviceRadius, additionalCities, zipCodes, enableTravelZones, travelZones]);
   
   // Load saved data
   useEffect(() => {
@@ -58,6 +65,7 @@ export default function OnboardingStep3Page() {
         setBaseAddress(data.baseAddress || '');
         setServiceRadius(data.serviceRadius || '25');
         setAdditionalCities(data.additionalCities || '');
+        setZipCodes(data.zipCodes || '');
         setEnableTravelZones(data.enableTravelZones || false);
         if (data.travelZones) setTravelZones(data.travelZones);
       }
@@ -71,6 +79,26 @@ export default function OnboardingStep3Page() {
     setTravelZones(zones => zones.map(zone => 
       zone.id === id ? { ...zone, [field]: value } : zone
     ));
+  };
+  
+  // Handle CSV import for ZIP codes
+  const handleCSVImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      // Parse CSV - handle both comma and newline separated values
+      const zips = text
+        .split(/[\n,;\t]+/)
+        .map(zip => zip.trim().replace(/[^\d]/g, '').slice(0, 5))
+        .filter(zip => /^\d{5}$/.test(zip))
+        .join(', ');
+      
+      setZipCodes(prev => prev ? `${prev}, ${zips}` : zips);
+    };
+    reader.readAsText(file);
   };
   
   return (
@@ -236,7 +264,7 @@ export default function OnboardingStep3Page() {
             </div>
 
             {/* Additional Cities Section */}
-            <div>
+            <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                   <span className="text-2xl mr-2">🗺️</span>
@@ -251,10 +279,89 @@ export default function OnboardingStep3Page() {
                   value={additionalCities}
                   onChange={(e) => setAdditionalCities(e.target.value)}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  rows={6}
+                  rows={4}
                   placeholder="Santa Monica&#10;Beverly Hills&#10;Pasadena&#10;Long Beach&#10;Glendale"
                 />
                 <p className="mt-1.5 text-xs text-slate-500">Enter one city per line. These will be highlighted on your service map.</p>
+              </div>
+            </div>
+            
+            {/* ZIP Code Targeting Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2">📍</span>
+                  <h2 className="text-lg font-semibold text-slate-900">ZIP Code Targeting</h2>
+                </div>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Precise Coverage</span>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">ZIP Codes You Serve</label>
+                  <textarea
+                    value={zipCodes}
+                    onChange={(e) => setZipCodes(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-mono text-sm"
+                    rows={4}
+                    placeholder="90001, 90002, 90003, 90004, 90005&#10;90006, 90007, 90008, 90009, 90010&#10;Paste multiple ZIPs separated by commas, spaces, or new lines"
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">Bulk paste ZIP codes separated by commas, spaces, or line breaks. Only 5-digit US ZIP codes will be recognized.</p>
+                </div>
+                
+                {/* CSV Import */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="csv-upload"
+                      className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 border border-slate-300 rounded-lg hover:bg-slate-200 transition-all cursor-pointer"
+                    >
+                      <span>📄</span>
+                      <span>Import from CSV</span>
+                    </label>
+                    <input
+                      id="csv-upload"
+                      type="file"
+                      accept=".csv,.txt"
+                      onChange={handleCSVImport}
+                      className="hidden"
+                    />
+                  </div>
+                  {zipCodesList.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setZipCodes('')}
+                      className="px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-all"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                
+                {/* ZIP Code Pills Display */}
+                {zipCodesList.length > 0 && (
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-700">
+                        {zipCodesList.length} ZIP Code{zipCodesList.length !== 1 ? 's' : ''} Added
+                      </span>
+                      <span className="text-xs text-slate-500">Auto-validated</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                      {zipCodesList.map((zip, index) => (
+                        <span key={index} className="inline-flex items-center gap-1 text-xs font-mono bg-blue-100 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                          {zip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-xs text-purple-800 leading-relaxed">
+                    🎯 <strong>Pro tip:</strong> Contractors think in ZIP codes. This precise targeting helps with lead qualification, routing efficiency, and accurate service area mapping.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -314,6 +421,11 @@ export default function OnboardingStep3Page() {
                 <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
                   <span className="text-xs font-medium text-slate-600">Cities Covered</span>
                   <span className="text-sm font-bold text-blue-600">{totalCities || '—'}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+                  <span className="text-xs font-medium text-slate-600">ZIP Codes Targeted</span>
+                  <span className="text-sm font-bold text-blue-600">{zipCodesList.length || '—'}</span>
                 </div>
                 
                 {citiesList.length > 0 && (

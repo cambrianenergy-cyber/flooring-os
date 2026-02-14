@@ -51,16 +51,25 @@ export default function WorkspaceDashboardPage() {
     }
     async function fetchEmptyStates() {
       if (!workspaceId) return;
-      const [estimates, jobs, invoices, reviews] = await Promise.all([
-        getDocs(query(collection(db, "estimates"), where("workspaceId", "==", workspaceId), where("status", "!=", "archived"))),
-        getDocs(query(collection(db, "jobs"), where("workspaceId", "==", workspaceId))),
-        getDocs(query(collection(db, "invoices"), where("workspaceId", "==", workspaceId))),
-        getDocs(query(collection(db, "reviews"), where("workspaceId", "==", workspaceId))),
-      ]);
-      setHasEstimate(!estimates.empty);
-      setHasJob(!jobs.empty);
-      setHasInvoice(!invoices.empty);
-      setHasReview(!reviews.empty);
+      try {
+        const [estimates, jobs, invoices, reviews] = await Promise.all([
+          getDocs(query(collection(db, "estimates"), where("workspaceId", "==", workspaceId), where("status", "!=", "archived"))).catch(() => ({ empty: true })),
+          getDocs(query(collection(db, "jobs"), where("workspaceId", "==", workspaceId))).catch(() => ({ empty: true })),
+          getDocs(query(collection(db, "invoices"), where("workspaceId", "==", workspaceId))).catch(() => ({ empty: true })),
+          getDocs(query(collection(db, "reviews"), where("workspaceId", "==", workspaceId))).catch(() => ({ empty: true })),
+        ]);
+        setHasEstimate(!estimates.empty);
+        setHasJob(!jobs.empty);
+        setHasInvoice(!invoices.empty);
+        setHasReview(!reviews.empty);
+      } catch (error) {
+        console.error("Error fetching empty states:", error);
+        // Set defaults on error
+        setHasEstimate(false);
+        setHasJob(false);
+        setHasInvoice(false);
+        setHasReview(false);
+      }
     }
     fetchWorkspace();
     fetchEmptyStates();

@@ -39,10 +39,41 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
   const [multiLocationEnabled, setMultiLocationEnabled] = useState(false);
   const [crews, setCrews] = useState<Crew[]>([]);
   const [expandedCrews, setExpandedCrews] = useState<number[]>([]);
+  const [showTravelZones, setShowTravelZones] = useState(false);
+  const [newCity, setNewCity] = useState("");
+  const [newZip, setNewZip] = useState("");
 
   // Parse cities and ZIP codes for preview
   const citiesList = additionalCities.split('\n').map(c => c.trim()).filter(c => c.length > 0);
   const zipCodesList = zipCodes.split(/[\n,\s]+/).map(z => z.trim()).filter(z => /^\d{5}$/.test(z));
+
+  // Add/remove city
+  const addCity = () => {
+    if (newCity.trim()) {
+      const cities = citiesList.includes(newCity.trim()) ? citiesList : [...citiesList, newCity.trim()];
+      setAdditionalCities(cities.join('\n'));
+      setNewCity('');
+    }
+  };
+
+  const removeCity = (city: string) => {
+    const cities = citiesList.filter(c => c !== city);
+    setAdditionalCities(cities.join('\n'));
+  };
+
+  // Add/remove ZIP
+  const addZip = () => {
+    const cleaned = newZip.trim().replace(/[^\d]/g, '').slice(0, 5);
+    if (/^\d{5}$/.test(cleaned) && !zipCodesList.includes(cleaned)) {
+      setZipCodes([...zipCodesList, cleaned].join(', '));
+      setNewZip('');
+    }
+  };
+
+  const removeZip = (zip: string) => {
+    const zips = zipCodesList.filter(z => z !== zip);
+    setZipCodes(zips.join(', '));
+  };
   const excludedAreasList = excludedAreas.split('\n').map(a => a.trim()).filter(a => a.length > 0);
   const excludedZipCodesList = excludedZipCodes.split(/[\n,\s]+/).map(z => z.trim()).filter(z => /^\d{5}$/.test(z));
 
@@ -213,129 +244,225 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
         <div className="space-y-6">
           {/* Base Location */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <span>🏢</span>
-              <span>Base Location</span>
+            <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+              <span>📍</span>
+              <span>Headquarters Location</span>
+            </h3>
+            <div>
+              <label className="block text-xs font-medium mb-2 text-slate-700">
+                Address
+              </label>
+              <input
+                type="text"
+                value={baseAddress}
+                onChange={(e) => setBaseAddress(e.target.value)}
+                className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                placeholder="123 Main Street, Los Angeles, CA 90001"
+              />
+            </div>
+          </div>
+
+          {/* Service Radius Slider */}
+          <div className="pt-6 border-t border-blue-200">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+              <span>📏</span>
+              <span>Service Radius</span>
             </h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium mb-1.5 text-slate-700">
-                  Business Headquarters Address *
-                </label>
-                <input
-                  type="text"
-                  value={baseAddress}
-                  onChange={(e) => setBaseAddress(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="123 Main Street, Los Angeles, CA 90001"
-                />
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-slate-600">Coverage Area</span>
+                <span className="text-lg font-bold text-blue-600">{serviceRadius} miles</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium mb-1.5 text-slate-700">
-                    Service Radius (miles) *
-                  </label>
-                  <input
-                    type="number"
-                    value={serviceRadius}
-                    onChange={(e) => setServiceRadius(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    min="1"
-                    max="500"
-                  />
-                </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                value={serviceRadius}
+                onChange={(e) => setServiceRadius(e.target.value)}
+                className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md hover:[&::-webkit-slider-thumb]:bg-blue-700 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md hover:[&::-moz-range-thumb]:bg-blue-700"
+              />
+              <div className="flex justify-between text-xs text-slate-500 px-1">
+                <span>0</span>
+                <span>25</span>
+                <span>50</span>
+                <span>75</span>
+                <span>100</span>
               </div>
             </div>
           </div>
 
-          {/* Travel Zones */}
-          <div className="pt-4 border-t border-blue-200">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                <span>📏</span>
-                <span>Tiered Travel Zones</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setEnableTravelZones(!enableTravelZones)}
-                className={`text-xs px-3 py-1 rounded font-medium transition-colors ${
-                  enableTravelZones
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                {enableTravelZones ? '✓ Enabled' : 'Enable'}
-              </button>
-            </div>
-            {enableTravelZones && (
-              <div className="space-y-2">
-                {travelZones.map((zone) => (
-                  <div key={zone.id} className="flex items-center gap-2 p-2 bg-white rounded border border-slate-200">
-                    <input
-                      type="text"
-                      value={zone.name}
-                      onChange={(e) => updateZone(zone.id, 'name', e.target.value)}
-                      className="flex-1 px-2 py-1 text-xs border border-slate-300 rounded"
-                      placeholder="Zone Name"
-                    />
-                    <input
-                      type="number"
-                      value={zone.minMiles}
-                      onChange={(e) => updateZone(zone.id, 'minMiles', parseInt(e.target.value) || 0)}
-                      className="w-16 px-2 py-1 text-xs border border-slate-300 rounded text-center"
-                    />
-                    <span className="text-xs text-slate-500">–</span>
-                    <input
-                      type="number"
-                      value={zone.maxMiles}
-                      onChange={(e) => updateZone(zone.id, 'maxMiles', parseInt(e.target.value) || 0)}
-                      className="w-16 px-2 py-1 text-xs border border-slate-300 rounded text-center"
-                    />
-                    <span className="text-xs text-slate-500">mi</span>
-                    <span className="text-xs text-slate-500">$</span>
-                    <input
-                      type="number"
-                      value={zone.fee}
-                      onChange={(e) => updateZone(zone.id, 'fee', e.target.value)}
-                      className="w-20 px-2 py-1 text-xs border border-slate-300 rounded"
-                      placeholder="0"
-                    />
+          {/* Travel Fees (Accordion) */}
+          <div className="pt-6 border-t border-blue-200">
+            <button
+              type="button"
+              onClick={() => setShowTravelZones(!showTravelZones)}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:from-slate-100 hover:to-slate-200 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💰</span>
+                <h3 className="text-sm font-semibold text-slate-900">Travel Fees</h3>
+                <span className="text-xs text-slate-500">(Optional)</span>
+                {enableTravelZones && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">Active</span>
+                )}
+              </div>
+              <span className="text-slate-400">{showTravelZones ? '−' : '+'}</span>
+            </button>
+            
+            {showTravelZones && (
+              <div className="mt-3 space-y-4 pl-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-600">Add distance-based fees for jobs outside your base radius</p>
+                  <button
+                    type="button"
+                    onClick={() => setEnableTravelZones(!enableTravelZones)}
+                    className={`text-xs px-3 py-1 rounded font-medium transition-colors ${
+                      enableTravelZones
+                        ? 'bg-green-600 text-white'
+                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    }`}
+                  >
+                    {enableTravelZones ? '✓ Enabled' : 'Enable'}
+                  </button>
+                </div>
+                {enableTravelZones && (
+                  <div className="space-y-2">
+                    {travelZones.map((zone) => (
+                      <div key={zone.id} className="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-200">
+                        <input
+                          type="text"
+                          value={zone.name}
+                          onChange={(e) => updateZone(zone.id, 'name', e.target.value)}
+                          className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded"
+                          placeholder="Zone Name"
+                        />
+                        <input
+                          type="number"
+                          value={zone.minMiles}
+                          onChange={(e) => updateZone(zone.id, 'minMiles', parseInt(e.target.value) || 0)}
+                          className="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded text-center"
+                        />
+                        <span className="text-xs text-slate-500">–</span>
+                        <input
+                          type="number"
+                          value={zone.maxMiles}
+                          onChange={(e) => updateZone(zone.id, 'maxMiles', parseInt(e.target.value) || 0)}
+                          className="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded text-center"
+                        />
+                        <span className="text-xs text-slate-500">mi</span>
+                        <span className="text-xs text-slate-500">$</span>
+                        <input
+                          type="number"
+                          value={zone.fee}
+                          onChange={(e) => updateZone(zone.id, 'fee', e.target.value)}
+                          className="w-20 px-2 py-1.5 text-xs border border-slate-300 rounded"
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
 
-          {/* Cities & ZIP Codes */}
-          <div className="pt-4 border-t border-blue-200">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <span>📍</span>
-              <span>Additional Coverage</span>
+          {/* Cities & Regions (Tag-based) */}
+          <div className="pt-6 border-t border-blue-200">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+              <span>🏙</span>
+              <span>Cities & Regions</span>
             </h3>
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="space-y-4">
+              {/* Cities */}
               <div>
-                <label className="block text-xs font-medium mb-1.5 text-slate-700">
+                <label className="block text-xs font-medium mb-2 text-slate-700">
                   Additional Cities
                 </label>
-                <textarea
-                  value={additionalCities}
-                  onChange={(e) => setAdditionalCities(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={3}
-                  placeholder="One city per line"
-                />
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {citiesList.map((city, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-sm"
+                    >
+                      <span>{city}</span>
+                      <button
+                        onClick={() => removeCity(city)}
+                        className="text-blue-500 hover:text-blue-700 font-bold"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newCity}
+                      onChange={(e) => setNewCity(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCity();
+                        }
+                      }}
+                      placeholder="Type city name"
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]"
+                    />
+                    <button
+                      onClick={addCity}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">Press Enter or click + to add</p>
               </div>
+
+              {/* ZIP Codes */}
               <div>
-                <label className="block text-xs font-medium mb-1.5 text-slate-700">
-                  ZIP Codes (comma/space separated)
+                <label className="block text-xs font-medium mb-2 text-slate-700">
+                  ZIP Codes
                 </label>
-                <textarea
-                  value={zipCodes}
-                  onChange={(e) => setZipCodes(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                  rows={3}
-                  placeholder="90001, 90002, 90003"
-                />
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {zipCodesList.map((zip, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg border border-purple-200 text-sm font-mono"
+                    >
+                      <span>{zip}</span>
+                      <button
+                        onClick={() => removeZip(zip)}
+                        className="text-purple-500 hover:text-purple-700 font-bold"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newZip}
+                      onChange={(e) => setNewZip(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addZip();
+                        }
+                      }}
+                      placeholder="12345"
+                      maxLength={5}
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono min-w-[100px]"
+                    />
+                    <button
+                      onClick={addZip}
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">5-digit US ZIP codes only</p>
               </div>
             </div>
           </div>

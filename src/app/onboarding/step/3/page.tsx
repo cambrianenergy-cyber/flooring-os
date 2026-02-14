@@ -24,6 +24,9 @@ export default function OnboardingStep3Page() {
     { id: 3, name: "Zone 3", minMiles: 50, maxMiles: 75, fee: "300" },
   ]);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [showTravelZones, setShowTravelZones] = useState(false);
+  const [newCity, setNewCity] = useState("");
+  const [newZip, setNewZip] = useState("");
   
   // Parse cities for map preview
   const citiesList = additionalCities
@@ -49,6 +52,34 @@ export default function OnboardingStep3Page() {
     .filter(zip => /^\d{5}$/.test(zip));
   
   const totalCities = citiesList.length + (baseAddress ? 1 : 0);
+  
+  // Add/remove city
+  const addCity = () => {
+    if (newCity.trim()) {
+      const cities = citiesList.includes(newCity.trim()) ? citiesList : [...citiesList, newCity.trim()];
+      setAdditionalCities(cities.join('\n'));
+      setNewCity('');
+    }
+  };
+
+  const removeCity = (city: string) => {
+    const cities = citiesList.filter(c => c !== city);
+    setAdditionalCities(cities.join('\n'));
+  };
+
+  // Add/remove ZIP
+  const addZip = () => {
+    const cleaned = newZip.trim().replace(/[^\d]/g, '').slice(0, 5);
+    if (/^\d{5}$/.test(cleaned) && !zipCodesList.includes(cleaned)) {
+      setZipCodes([...zipCodesList, cleaned].join(', '));
+      setNewZip('');
+    }
+  };
+
+  const removeZip = (zip: string) => {
+    const zips = zipCodesList.filter(z => z !== zip);
+    setZipCodes(zips.join(', '));
+  };
   
   // Autosave functionality
   useEffect(() => {
@@ -146,14 +177,94 @@ export default function OnboardingStep3Page() {
               </div>
             </div>
 
+            {/* Map Preview */}
+            {baseAddress && (
+              <div className="mb-6 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <span>🗺️</span>
+                    <span>Territory Map</span>
+                  </h3>
+                  <div className="relative rounded-lg overflow-hidden border border-slate-200">
+                    <iframe
+                      width="100%"
+                      height="250"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(baseAddress)}&zoom=${Math.max(8, 14 - Math.floor(parseInt(serviceRadius) / 10))}`}
+                    />
+                    <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-200 shadow-md">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                          <span className="text-slate-700 font-medium truncate">{baseAddress.substring(0, 35)}...</span>
+                        </div>
+                        <span className="text-blue-600 font-semibold">{serviceRadius} mi</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Headquarters Location */}
+            <div className="mb-6 bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+              <div className="flex items-center mb-4">
+                <span className="text-xl mr-2">📍</span>
+                <h2 className="text-base font-semibold text-slate-900">Headquarters Location</h2>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2 text-slate-700">Address</label>
+                <input
+                  type="text"
+                  value={baseAddress}
+                  onChange={(e) => setBaseAddress(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                  placeholder="123 Main Street, Los Angeles, CA 90001"
+                />
+              </div>
+            </div>
+
+            {/* Service Radius Slider */}
+            <div className="mb-6 bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+              <div className="flex items-center mb-4">
+                <span className="text-xl mr-2">📏</span>
+                <h2 className="text-base font-semibold text-slate-900">Service Radius</h2>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-600">Coverage Area</span>
+                  <span className="text-lg font-bold text-blue-600">{serviceRadius} miles</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={serviceRadius}
+                  onChange={(e) => setServiceRadius(e.target.value)}
+                  className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md hover:[&::-webkit-slider-thumb]:bg-blue-700 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:bg-blue-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md hover:[&::-moz-range-thumb]:bg-blue-700"
+                />
+                <div className="flex justify-between text-xs text-slate-500 px-1">
+                  <span>0</span>
+                  <span>25</span>
+                  <span>50</span>
+                  <span>75</span>
+                  <span>100</span>
+                </div>
+              </div>
+            </div>
+
             {/* Base Location Section */}
-            <div className="mb-6">
+            <div className="mb-6" style={{display: 'none'}}>
               <div className="flex items-center mb-4">
                 <span className="text-2xl mr-2">🏢</span>
                 <h2 className="text-lg font-semibold text-slate-900">Base Location</h2>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-4" style={{display: 'none'}}>
                 <div>
                   <label className="block text-sm font-medium mb-1 text-slate-700">Business Headquarters Address *</label>
                   <input
@@ -185,14 +296,114 @@ export default function OnboardingStep3Page() {
               </div>
             </div>
 
-            {/* Travel Zones Section */}
-            <div className="mb-6">
+            {/* Cities & Regions (Tag-based) */}
+            <div className="mb-6 bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+              <div className="flex items-center mb-4">
+                <span className="text-xl mr-2">🏙</span>
+                <h2 className="text-base font-semibold text-slate-900">Cities & Regions</h2>
+              </div>
+              <div className="space-y-4">
+                {/* Cities */}
+                <div>
+                  <label className="block text-xs font-medium mb-2 text-slate-700">Additional Cities</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {citiesList.map((city, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-sm"
+                      >
+                        <span>{city}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeCity(city)}
+                          className="text-blue-500 hover:text-blue-700 font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newCity}
+                        onChange={(e) => setNewCity(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCity();
+                          }
+                        }}
+                        placeholder="Type city name"
+                        className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={addCity}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500">Press Enter or click + to add</p>
+                </div>
+
+                {/* ZIP Codes */}
+                <div>
+                  <label className="block text-xs font-medium mb-2 text-slate-700">ZIP Codes</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {zipCodesList.map((zip, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg border border-purple-200 text-sm font-mono"
+                      >
+                        <span>{zip}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeZip(zip)}
+                          className="text-purple-500 hover:text-purple-700 font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newZip}
+                        onChange={(e) => setNewZip(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addZip();
+                          }
+                        }}
+                        placeholder="12345"
+                        maxLength={5}
+                        className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono min-w-[100px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={addZip}
+                        className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500">5-digit US ZIP codes only</p>
+                </div>
+              </div>
+            </div>
+
+            {/* OLD Additional Cities and ZIP Section - HIDDEN */}
+            <div className="mb-6" style={{display: 'none'}}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <span className="text-2xl mr-2">📏</span>
-                  <h2 className="text-lg font-semibold text-slate-900">Travel Zones</h2>
+                  <span className="text-2xl mr-2">🗺️</span>
+                  <h2 className="text-lg font-semibold text-slate-900">Additional Cities</h2>
                 </div>
-                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Intelligent Pricing</span>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional</span>
               </div>
               
               <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
@@ -289,15 +500,90 @@ export default function OnboardingStep3Page() {
                 </div>
                 <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional</span>
               </div>
+            {/* Travel Fees (Accordion) */}
+            <div className="mb-6 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setShowTravelZones(!showTravelZones)}
+                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💰</span>
+                  <h2 className="text-base font-semibold text-slate-900">Travel Fees</h2>
+                  <span className="text-xs text-slate-500">(Optional)</span>
+                  {enableTravelZones && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">Active</span>
+                  )}
+                </div>
+                <span className="text-slate-400">{showTravelZones ? '−' : '+'}</span>
+              </button>
               
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-700">Cities/Regions You Serve</label>
-                <textarea
-                  value={additionalCities}
-                  onChange={(e) => setAdditionalCities(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  rows={4}
-                  placeholder="Santa Monica&#10;Beverly Hills&#10;Pasadena&#10;Long Beach&#10;Glendale"
+              {showTravelZones && (
+                <div className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-600">Add distance-based fees for jobs outside your base radius</p>
+                    <button
+                      type="button"
+                      onClick={() => setEnableTravelZones(!enableTravelZones)}
+                      className={`text-xs px-3 py-1 rounded font-medium transition-colors ${
+                        enableTravelZones
+                          ? 'bg-green-600 text-white'
+                          : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                      }`}
+                    >
+                      {enableTravelZones ? '✓ Enabled' : 'Enable'}
+                    </button>
+                  </div>
+                  {enableTravelZones && (
+                    <div className="space-y-2">
+                      {travelZones.map((zone) => (
+                        <div key={zone.id} className="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-200">
+                          <input
+                            type="text"
+                            value={zone.name}
+                            onChange={(e) => updateZone(zone.id, 'name', e.target.value)}
+                            className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded"
+                            placeholder="Zone Name"
+                          />
+                          <input
+                            type="number"
+                            value={zone.minMiles}
+                            onChange={(e) => updateZone(zone.id, 'minMiles', parseInt(e.target.value) || 0)}
+                            className="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded text-center"
+                          />
+                          <span className="text-xs text-slate-500">–</span>
+                          <input
+                            type="number"
+                            value={zone.maxMiles}
+                            onChange={(e) => updateZone(zone.id, 'maxMiles', parseInt(e.target.value) || 0)}
+                            className="w-16 px-2 py-1.5 text-xs border border-slate-300 rounded text-center"
+                          />
+                          <span className="text-xs text-slate-500">mi</span>
+                          <span className="text-xs text-slate-500">$</span>
+                          <input
+                            type="number"
+                            value={zone.fee}
+                            onChange={(e) => updateZone(zone.id, 'fee', e.target.value)}
+                            className="w-20 px-2 py-1.5 text-xs border border-slate-300 rounded"
+                            placeholder="0"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* OLD Travel Zones Section - HIDDEN */}
+            <div className="mb-6" style={{display: 'none'}}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2">📏</span>
+                  <h2 className="text-lg font-semibold text-slate-900">Travel Zones</h2>
+                </div>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Intelligent Pricing</span>
+              </div>
                 />
                 <p className="mt-1.5 text-xs text-slate-500">Enter one city per line. These will be highlighted on your service map.</p>
               </div>

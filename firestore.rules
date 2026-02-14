@@ -14,10 +14,7 @@ service cloud.firestore {
         // Check if workspace ID matches user ID (owner)
         workspaceId == request.auth.uid ||
         // Check if members subcollection exists
-        exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) ||
-        // Check if members array contains user
-        (exists(/databases/$(database)/documents/workspaces/$(workspaceId)) && 
-         request.auth.uid in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.members)
+        exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
       );
     }
     function isAdmin(workspaceId) {

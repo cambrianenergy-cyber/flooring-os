@@ -14,6 +14,8 @@ export default function OnboardingStep3Page() {
   const [serviceRadius, setServiceRadius] = useState("25");
   const [additionalCities, setAdditionalCities] = useState("");
   const [zipCodes, setZipCodes] = useState("");
+  const [excludedAreas, setExcludedAreas] = useState("");
+  const [excludedZipCodes, setExcludedZipCodes] = useState("");
   const [enableTravelZones, setEnableTravelZones] = useState(false);
   const [travelZones, setTravelZones] = useState<TravelZone[]>([
     { id: 1, name: "Zone 1", minMiles: 0, maxMiles: 25, fee: "0" },
@@ -34,11 +36,22 @@ export default function OnboardingStep3Page() {
     .map(zip => zip.trim())
     .filter(zip => /^\d{5}$/.test(zip));
   
+  // Parse excluded areas
+  const excludedAreasList = excludedAreas
+    .split('\n')
+    .map(area => area.trim())
+    .filter(area => area.length > 0);
+  
+  const excludedZipCodesList = excludedZipCodes
+    .split(/[\n,\s]+/)
+    .map(zip => zip.trim())
+    .filter(zip => /^\d{5}$/.test(zip));
+  
   const totalCities = citiesList.length + (baseAddress ? 1 : 0);
   
   // Autosave functionality
   useEffect(() => {
-    const formData = { baseAddress, serviceRadius, additionalCities, zipCodes, enableTravelZones, travelZones };
+    const formData = { baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, enableTravelZones, travelZones };
     const hasData = Object.values(formData).some(val => val !== '' && val !== false);
     if (!hasData) return;
     
@@ -54,7 +67,7 @@ export default function OnboardingStep3Page() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [baseAddress, serviceRadius, additionalCities, zipCodes, enableTravelZones, travelZones]);
+  }, [baseAddress, serviceRadius, additionalCities, zipCodes, excludedAreas, excludedZipCodes, enableTravelZones, travelZones]);
   
   // Load saved data
   useEffect(() => {
@@ -66,6 +79,8 @@ export default function OnboardingStep3Page() {
         setServiceRadius(data.serviceRadius || '25');
         setAdditionalCities(data.additionalCities || '');
         setZipCodes(data.zipCodes || '');
+        setExcludedAreas(data.excludedAreas || '');
+        setExcludedZipCodes(data.excludedZipCodes || '');
         setEnableTravelZones(data.enableTravelZones || false);
         if (data.travelZones) setTravelZones(data.travelZones);
       }
@@ -364,6 +379,87 @@ export default function OnboardingStep3Page() {
                 </div>
               </div>
             </div>
+            
+            {/* Excluded Areas Section */}
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-2">🚫</span>
+                  <h2 className="text-lg font-semibold text-slate-900">Excluded Areas</h2>
+                </div>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Quality Control</span>
+              </div>
+              
+              <div className="p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
+                <p className="text-xs text-red-800 leading-relaxed">
+                  <strong>⚠️ Service Area Exclusions:</strong> Specify neighborhoods or ZIP codes you prefer not to serve. These will be automatically filtered from lead routing and estimates.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Excluded Neighborhoods */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">Excluded Neighborhoods/Cities</label>
+                  <textarea
+                    value={excludedAreas}
+                    onChange={(e) => setExcludedAreas(e.target.value)}
+                    className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-red-50/30"
+                    rows={3}
+                    placeholder="Downtown District&#10;Industrial Zone&#10;Specific areas you don't serve"
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">Enter one area per line. Leads from these areas will be filtered automatically.</p>
+                </div>
+                
+                {/* Excluded ZIP Codes */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-700">Excluded ZIP Codes</label>
+                  <textarea
+                    value={excludedZipCodes}
+                    onChange={(e) => setExcludedZipCodes(e.target.value)}
+                    className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-red-50/30 font-mono text-sm"
+                    rows={3}
+                    placeholder="90001, 90002, 90003"
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">Enter ZIP codes separated by commas, spaces, or line breaks. These areas will be blocked from service.</p>
+                </div>
+                
+                {/* Excluded Areas Display */}
+                {(excludedAreasList.length > 0 || excludedZipCodesList.length > 0) && (
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="text-xs font-semibold text-red-600 mb-3 flex items-center gap-2">
+                      <span>🚫</span>
+                      <span>{excludedAreasList.length + excludedZipCodesList.length} Area{(excludedAreasList.length + excludedZipCodesList.length) !== 1 ? 's' : ''} Excluded</span>
+                    </div>
+                    
+                    {excludedAreasList.length > 0 && (
+                      <div className="mb-3">
+                        <div className="text-xs text-slate-600 mb-1.5 font-medium">Excluded Neighborhoods:</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {excludedAreasList.map((area, index) => (
+                            <span key={index} className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200">
+                              {area}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {excludedZipCodesList.length > 0 && (
+                      <div>
+                        <div className="text-xs text-slate-600 mb-1.5 font-medium">Excluded ZIP Codes:</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {excludedZipCodesList.map((zip, index) => (
+                            <span key={index} className="inline-flex items-center gap-1 text-xs font-mono bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200">
+                              {zip}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         
@@ -427,6 +523,13 @@ export default function OnboardingStep3Page() {
                   <span className="text-xs font-medium text-slate-600">ZIP Codes Targeted</span>
                   <span className="text-sm font-bold text-blue-600">{zipCodesList.length || '—'}</span>
                 </div>
+                
+                {(excludedAreasList.length > 0 || excludedZipCodesList.length > 0) && (
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <span className="text-xs font-medium text-red-700">🚫 Excluded Areas</span>
+                    <span className="text-sm font-bold text-red-600">{excludedAreasList.length + excludedZipCodesList.length}</span>
+                  </div>
+                )}
                 
                 {citiesList.length > 0 && (
                   <div className="p-3 bg-white rounded-lg border border-slate-200">

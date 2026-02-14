@@ -15,8 +15,11 @@ export default function OnboardingStep2Page() {
   const [website, setWebsite] = useState("");
   
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-8">
+    <div className="max-w-6xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left Column - Form */}
+        <div className="flex-1">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Company Profile</h1>
           <p className="text-gray-600 mt-2">Tell us about your business</p>
@@ -154,6 +157,66 @@ export default function OnboardingStep2Page() {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="https://yourcompany.com"
               />
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+        
+        {/* Right Column - Live Preview Panel */}
+        <div className="lg:w-96 flex-shrink-0">
+          <div className="sticky top-8">
+            <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-xl border border-blue-200 p-6 shadow-lg">
+              <div className="mb-4">
+                <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Live Preview</div>
+                <p className="text-sm text-slate-600">This will appear on your estimates and invoices.</p>
+              </div>
+              
+              <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+                <div className="space-y-3">
+                  <div>
+                    <div className="font-bold text-lg text-slate-900">
+                      {companyName || "Your Company Name"}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1 text-sm text-slate-600">
+                    <div className="flex items-center">
+                      <span className="mr-2">📞</span>
+                      <span>{phone || "(555) 123-4567"}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="mr-2">✉️</span>
+                      <span>{email || "contact@company.com"}</span>
+                    </div>
+                    {website && (
+                      <div className="flex items-center">
+                        <span className="mr-2">🌐</span>
+                        <span className="text-blue-600 truncate">{website}</span>
+                      </div>
+                    )}
+                    {address && (
+                      <div className="flex items-start mt-2 pt-2 border-t border-slate-100">
+                        <span className="mr-2">📍</span>
+                        <div className="text-slate-600">
+                          <div>{address}</div>
+                          {(city || state || zip) && (
+                            <div>
+                              {city}{city && (state || zip) ? ', ' : ''}{state} {zip}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {licenseNumber && (
+                      <div className="flex items-center mt-2 pt-2 border-t border-slate-100">
+                        <span className="mr-2">🔖</span>
+                        <span className="text-xs">License: {licenseNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

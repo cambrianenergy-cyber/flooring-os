@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { AIUsageBanner } from "@/app/components/AIUsageBanner";
 import { AIUsageHistoryChart } from "@/app/components/AIUsageHistoryChart";
 import { NextStepBanner } from "@/app/components/NextStepBanner";
@@ -32,15 +32,20 @@ export default function WorkspaceDashboardPage() {
 
   useEffect(() => {
     async function fetchWorkspace() {
+      if (!workspaceId) return;
       setLoading(true);
-      const q = query(collection(db, "workspaces"), where("slug", "==", workspaceId));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const data = snap.docs[0].data();
-        setWorkspace({
-          name: data.name ?? "Workspace",
-          plan: data.plan ? { key: data.plan.key } : undefined
-        });
+      try {
+        const docRef = doc(db, "workspaces", workspaceId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setWorkspace({
+            name: data.name ?? "Workspace",
+            plan: data.plan ? { key: data.plan.key } : undefined
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching workspace:", error);
       }
       setLoading(false);
     }

@@ -584,9 +584,6 @@ export default function OnboardingStep3Page() {
                 </div>
                 <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Optional • Intelligent Pricing</span>
               </div>
-                />
-                <p className="mt-1.5 text-xs text-slate-500">Enter one city per line. These will be highlighted on your service map.</p>
-              </div>
             </div>
             
             {/* ZIP Code Targeting Section */}

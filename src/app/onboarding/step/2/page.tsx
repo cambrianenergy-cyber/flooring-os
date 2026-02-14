@@ -21,8 +21,26 @@ export default function OnboardingStep2Page() {
         <div className="flex-1">
           <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Company Profile</h1>
-          <p className="text-gray-600 mt-2">Tell us about your business</p>
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold">Company Profile</h1>
+              <p className="text-gray-600 mt-2">Tell us about your business</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold text-blue-600">Step 2 of 11</div>
+              <div className="text-xs text-slate-500 mt-1">18% Complete</div>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-600 transition-all duration-300"
+                style={{ width: '18%' }}
+              />
+            </div>
+          </div>
         </div>
         
         {/* Basic Information Section */}

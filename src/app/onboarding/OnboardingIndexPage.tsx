@@ -50,34 +50,45 @@ export default function OnboardingIndexPage() {
 
     async function redirectToCurrentStep() {
       if (!user) return;
-      const workspaceId = user.uid;
-      const onboardingDoc = doc(db, "workspaces", workspaceId, "onboarding", "state");
-      console.log("Auth user:", user.uid);
-      console.log("Workspace ID:", workspaceId);
-      console.log("Firestore path:", onboardingDoc.path);
-      const snap = await getDoc(onboardingDoc);
+      
+      try {
+        const workspaceId = user.uid;
+        const onboardingDoc = doc(db, "workspaces", workspaceId, "onboarding", "state");
+        console.log("Auth user:", user.uid);
+        console.log("Workspace ID:", workspaceId);
+        console.log("Firestore path:", onboardingDoc.path);
+        
+        const snap = await getDoc(onboardingDoc);
 
-      // No onboarding doc yet → start onboarding
-      if (!snap.exists()) {
-        router.replace("/onboarding/welcome");
-        return;
-      }
-
-      const onboarding = snap.data() as WorkspaceOnboarding;
-
-      // Onboarding completed → billing or app
-      if (onboarding.completedAt) {
-        if (onboarding.workspaceId) {
-          router.replace(`/billing/activate?workspaceId=${onboarding.workspaceId}`);
-        } else {
-          router.replace("/onboarding/commit");
+        // No onboarding doc yet → start onboarding
+        if (!snap.exists()) {
+          console.log("No onboarding doc found, redirecting to welcome");
+          router.replace("/onboarding/welcome");
+          return;
         }
-        return;
-      }
 
-      // Resume onboarding at persisted step
-      const step = onboarding.currentStep || "welcome";
-      router.replace(`/onboarding/${step}`);
+        const onboarding = snap.data() as WorkspaceOnboarding;
+        console.log("Onboarding data:", onboarding);
+
+        // Onboarding completed → billing or app
+        if (onboarding.completedAt) {
+          if (onboarding.workspaceId) {
+            router.replace(`/billing/activate?workspaceId=${onboarding.workspaceId}`);
+          } else {
+            router.replace("/onboarding/commit");
+          }
+          return;
+        }
+
+        // Resume onboarding at persisted step
+        const step = onboarding.currentStep || "welcome";
+        console.log("Redirecting to step:", step);
+        router.replace(`/onboarding/${step}`);
+      } catch (error) {
+        console.error("Error loading onboarding:", error);
+        // Fallback to welcome page on any error
+        router.replace("/onboarding/welcome");
+      }
     }
 
     redirectToCurrentStep();

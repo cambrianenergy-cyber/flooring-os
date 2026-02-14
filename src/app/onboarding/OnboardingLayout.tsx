@@ -38,20 +38,20 @@ export default function OnboardingLayout({
         <div className="w-full max-w-3xl mx-auto">
           <ProgressBar step={step} />
           {children}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between items-center mt-8">
             <button
-              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+              className="px-6 py-2.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50 transition-all font-medium"
               onClick={() => goBack(step, router)}
               disabled={step === 0}
             >
               ← Back
             </button>
             <button
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-8 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all font-bold shadow-md hover:shadow-lg"
               onClick={() => goNext(step, router)}
               disabled={step >= 11}
             >
-              Next →
+              Save & Continue →
             </button>
           </div>
         </div>

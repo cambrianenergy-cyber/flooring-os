@@ -24,9 +24,20 @@ export default function OnboardingStep5Page() {
   
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Services</h1>
-        <p className="text-gray-600 mt-2">What services do you offer?</p>
+      <div className="mb-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">Services</h1>
+            <p className="text-gray-600 mt-2">What services do you offer?</p>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-semibold text-blue-600">Step 5 of 11</div>
+            <div className="text-xs text-slate-500 mt-1">45% Complete</div>
+          </div>
+        </div>
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: '45%' }} />
+        </div>
       </div>
       
       <div className="space-y-3">

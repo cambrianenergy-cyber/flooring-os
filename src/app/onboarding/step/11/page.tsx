@@ -15,9 +15,20 @@ export default function OnboardingStep11Page() {
   
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">You're All Set! 🎉</h1>
-        <p className="text-gray-600 mt-2">Your workspace is ready to use</p>
+      <div className="mb-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">You're All Set! 🎉</h1>
+            <p className="text-gray-600 mt-2">Your workspace is ready to use</p>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-semibold text-green-600">Step 11 of 11</div>
+            <div className="text-xs text-slate-500 mt-1">100% Complete</div>
+          </div>
+        </div>
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full bg-green-600 transition-all duration-300" style={{ width: '100%' }} />
+        </div>
       </div>
       
       <div className="space-y-4">

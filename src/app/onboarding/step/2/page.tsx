@@ -22,7 +22,7 @@ export default function OnboardingStep2Page() {
   const [enterpriseConfigEnabled, setEnterpriseConfigEnabled] = useState(false);
   
   // Check if user is a founder (can be enhanced with custom claims or Firestore role check)
-  const isFounder = user?.email?.includes('finan') || user?.email?.endsWith('@squareos.com') || false;
+  const isFounder = user?.email?.includes('finan') || user?.email?.includes('cambrian') || user?.email?.endsWith('@squareos.com') || false;
   
   // Autosave functionality with debouncing
   useEffect(() => {

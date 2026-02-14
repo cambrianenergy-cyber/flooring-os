@@ -160,9 +160,9 @@ export default function OnboardingWelcomePage() {
         
         <button
           onClick={() => router.push("/onboarding/2")}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          className="w-full px-6 py-4 bg-blue-600 text-white text-lg rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg hover:shadow-xl"
         >
-          Get Started →
+          🚀 Build My Workspace
         </button>
       </div>
     </OnboardingLayout>

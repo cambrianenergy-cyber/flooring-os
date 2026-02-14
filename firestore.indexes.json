@@ -546,6 +546,14 @@
       "fields": [
         { "fieldPath": "workspaceId", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "ai_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "monthKey", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -552,7 +552,8 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "monthKey", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" }
+        { "fieldPath": "createdAt", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     }
   ],

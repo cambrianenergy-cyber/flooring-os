@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import LogoBrandingSettings from "./LogoBrandingSettings";
 import CompanyProfilePage from "./CompanyProfilePage";
 import PricingSettingsPanel from "./PricingSettingsPanel";
+import ServiceAreaSettingsPanel from "./ServiceAreaSettingsPanel";
 // Helper to get tenantId from subdomain or fallback
 function getTenantId() {
   if (typeof window !== "undefined") {
@@ -51,6 +52,7 @@ export default function SettingsPage() {
     <div>
       <button onClick={() => window.history.back()} className="mb-4 text-blue-600 underline">Back</button>
       <CompanyProfilePage />
+      <ServiceAreaSettingsPanel workspaceId={workspaceId || user?.uid || ""} />
       <LogoBrandingSettings tenantId={getTenantId()} />
       {workspaceId && <PricingSettingsPanel workspaceId={workspaceId} />}
       <ApiKeyForm apiKey={""} onSave={handleSaveApiKey} />

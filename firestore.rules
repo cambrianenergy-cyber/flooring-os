@@ -6,14 +6,37 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    function isOwner(workspaceId) {
+      return isSignedIn() && workspaceId == request.auth.uid;
+    }
     function isMember(workspaceId) {
-      return isSignedIn() && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid));
+      return isSignedIn() && (
+        // Check if workspace ID matches user ID (owner)
+        workspaceId == request.auth.uid ||
+        // Check if members subcollection exists
+        exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) ||
+        // Check if members array contains user
+        (exists(/databases/$(database)/documents/workspaces/$(workspaceId)) && 
+         request.auth.uid in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.members)
+      );
     }
     function isAdmin(workspaceId) {
-      return isSignedIn() && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role in ["founder", "owner", "admin"];
+      return isSignedIn() && (
+        // Owner is always admin
+        workspaceId == request.auth.uid ||
+        // Check admin role in subcollection
+        (exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role in ["founder", "owner", "admin"])
+      );
     }
     function isFounder(workspaceId) {
-      return isSignedIn() && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role == "founder";
+      return isSignedIn() && (
+        // Owner is founder
+        workspaceId == request.auth.uid ||
+        // Check founder role in subcollection
+        (exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role == "founder")
+      );
     }
     function isInvitee() {
       return request.auth != null && resource.data.email == request.auth.token.email;

@@ -608,7 +608,7 @@ export default function ServiceAreaSettingsPanel({ workspaceId }: { workspaceId:
                     <p className="text-xs text-slate-500 italic">
                       🔬 <strong>How it works:</strong> Our AI analyzes your pricing settings, completed jobs, 
                       market density, and competitor coverage to generate personalized recommendations. 
-                      As you complete more jobs, recommendations become more accurate&apos;.
+                      As you complete more jobs, recommendations become more accurate.
                     </p>
                   </div>
                 </div>

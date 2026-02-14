@@ -57,9 +57,10 @@ export default function OnboardingStep2Page() {
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="Your Company LLC"
               />
+              <p className="mt-1.5 text-xs text-slate-500">This name will appear on all client-facing documents.</p>
             </div>
             
             <div>
@@ -68,9 +69,10 @@ export default function OnboardingStep2Page() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="(555) 123-4567"
               />
+              <p className="mt-1.5 text-xs text-slate-500">Used for SMS notifications and job updates.</p>
             </div>
             
             <div>
@@ -79,9 +81,10 @@ export default function OnboardingStep2Page() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="contact@company.com"
               />
+              <p className="mt-1.5 text-xs text-slate-500">This will receive estimate approvals and payment alerts.</p>
             </div>
           </div>
         </div>
@@ -103,9 +106,10 @@ export default function OnboardingStep2Page() {
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="123 Main Street"
               />
+              <p className="mt-1.5 text-xs text-slate-500">Your primary business location for estimates and invoices.</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -115,7 +119,7 @@ export default function OnboardingStep2Page() {
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="City"
                 />
               </div>
@@ -125,7 +129,7 @@ export default function OnboardingStep2Page() {
                   type="text"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="CA"
                   maxLength={2}
                 />
@@ -138,10 +142,11 @@ export default function OnboardingStep2Page() {
                 type="text"
                 value={zip}
                 onChange={(e) => setZip(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="90210"
                 maxLength={10}
               />
+              <p className="mt-1.5 text-xs text-slate-500">Used for local service area calculations.</p>
             </div>
             
             <div>
@@ -150,9 +155,10 @@ export default function OnboardingStep2Page() {
                 type="text"
                 value={licenseNumber}
                 onChange={(e) => setLicenseNumber(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="Contractor license number"
               />
+              <p className="mt-1.5 text-xs text-slate-500">Displayed on estimates to build customer trust and meet compliance.</p>
             </div>
             
             <div>
@@ -161,9 +167,10 @@ export default function OnboardingStep2Page() {
                 type="text"
                 value={ein}
                 onChange={(e) => setEin(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="12-3456789"
               />
+              <p className="mt-1.5 text-xs text-slate-500">For tax documentation and business credibility.</p>
             </div>
             
             <div>
@@ -172,9 +179,10 @@ export default function OnboardingStep2Page() {
                 type="url"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="https://yourcompany.com"
               />
+              <p className="mt-1.5 text-xs text-slate-500">Your online presence for customers to learn more about your services.</p>
             </div>
           </div>
         </div>

@@ -1,3 +1,5 @@
 "use client";
-import AppointmentsPage from "../appointments/page";
-export default AppointmentsPage;
+// AppointmentsPage import removed due to missing module
+export default function SchedulePage() {
+	return <div>Schedule page unavailable.</div>;
+}

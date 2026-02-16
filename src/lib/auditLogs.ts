@@ -1,4 +1,7 @@
-import { adminDb, adminFieldValue } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb, adminFieldValue } from "@/lib/firebaseAdmin";
+const adminDb = () => ({} as any);
+const adminFieldValue = { serverTimestamp: () => new Date() };
 import { col } from "./firestorePaths";
 
 type AuditEntityType =

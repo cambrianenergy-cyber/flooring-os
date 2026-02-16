@@ -4,7 +4,9 @@
 
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import { getAuth } from 'firebase-admin/auth';
-import { adminDb } from './firebaseAdmin';
+// Server-only code removed for static export
+// import { adminDb } from './firebaseAdmin';
+const adminDb = () => ({});
 
 export function withFirebaseAuth(handler: NextApiHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {

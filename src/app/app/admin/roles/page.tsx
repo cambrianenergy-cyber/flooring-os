@@ -5,8 +5,14 @@ import { ROLE_LABELS, UserRole } from "@/lib/roles";
 import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
+type User = {
+  id: string;
+  role?: UserRole;
+  [key: string]: unknown;
+};
+
 export default function RolesAdminPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 

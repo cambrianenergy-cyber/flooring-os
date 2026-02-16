@@ -9,45 +9,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* Semantic colors (CSS variables) */
-        background: "rgb(var(--background, 12 17 26))",
-        foreground: "rgb(var(--foreground, 232 237 247))",
-        muted: "rgb(var(--muted, 159 178 201))",
-        border: "var(--border)",
-        
-        /* Page background colors - centralized theming */
-        "page-bg": "var(--page-bg)",
-        "page-surface": "var(--page-surface)",
-        "page-panel": "var(--page-panel)",
-        
-        /* Custom color palette */
-        "dark-bg": "var(--bg)",
-        "dark-surface": "var(--surface)",
-        "dark-panel": "var(--panel)",
-        "dark-muted": "var(--muted-bg)",
-        "dark-border": "var(--border)",
-        "ink-strong": "var(--ink-strong)",
-        "ink-soft": "var(--ink-soft)",
-        "ink-muted": "var(--ink-muted)",
-        "accent": "var(--accent)",
-        "accent-strong": "var(--accent-strong)",
-        "accent-ghost": "var(--accent-ghost)",
-        "warning": "var(--warning)",
-        "danger": "var(--danger)",
-        "success": "var(--success)",
+        /* Green and white color scheme */
+        primary: '#22c55e', // Tailwind green-500
+        secondary: '#16a34a', // Tailwind green-700
+        background: '#ffffff',
+        foreground: '#22c55e',
+        muted: '#e5e7eb', // Tailwind gray-200
+        border: '#22c55e',
+        pageBg: '#ffffff',
+        pageSurface: '#f0fdf4', // Tailwind green-50
+        pagePanel: '#d1fae5', // Tailwind green-100
+        accent: '#22c55e',
+        accentStrong: '#16a34a',
+        accentGhost: '#bbf7d0', // Tailwind green-200
+        warning: '#facc15', // Tailwind yellow-400
+        danger: '#ef4444', // Tailwind red-500
+        success: '#22c55e',
       },
       borderRadius: {
-        "lg": "var(--radius-lg)",
-        "md": "var(--radius-md)",
-        "sm": "var(--radius-sm)",
+        lg: '1rem',
+        md: '0.5rem',
+        sm: '0.25rem',
       },
       boxShadow: {
-        "ambient": "var(--shadow-ambient)",
-        "soft": "var(--shadow-soft)",
+        ambient: '0 4px 24px rgba(34,197,94,0.12)',
+        soft: '0 2px 8px rgba(34,197,94,0.08)',
       },
       fontFamily: {
-        "sans": "var(--font-body)",
-        "mono": "var(--font-mono)",
+        sans: 'Inter, sans-serif',
+        mono: 'Menlo, Monaco, Consolas, monospace',
       },
     },
   },

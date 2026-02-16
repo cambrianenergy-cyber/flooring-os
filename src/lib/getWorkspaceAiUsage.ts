@@ -1,5 +1,7 @@
 import { resolvePlan, PlanKey } from "@/lib/plans";
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 
 /**
  * Returns the monthly AI action quota for a workspace based on its plan.

@@ -1,3 +1,4 @@
+// Removed server-only import for static export
 import { Readable } from "stream";
 
 // --- Firestore Mock Classes ---

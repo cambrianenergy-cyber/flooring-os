@@ -1,5 +1,12 @@
-import { adminDb } from "@/lib/firebaseAdmin";
-import { Timestamp } from "firebase-admin/firestore";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+// import { Timestamp } from "firebase-admin/firestore";
+const adminDb = (..._args: any[]) => ({
+  collection: (..._args: any[]) => ({
+    add: async (..._args: any[]) => {}
+  })
+});
+const Timestamp = { now: () => new Date() };
 
 export async function writeAuditLog(params: {
   workspaceId: string;

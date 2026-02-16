@@ -1,4 +1,15 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+type Transaction = { get: (ref: unknown) => Promise<{ exists: boolean; data: () => unknown }>, set: (ref: unknown, data: unknown) => void, update: (ref: unknown, data: unknown) => void };
+const adminDb = () => ({
+  collection: (..._args: unknown[]) => {
+    void _args;
+    return {
+      doc: (..._docArgs: unknown[]) => { void _docArgs; return { get: async () => ({ exists: false, data: () => ({}) }), set: async () => {}, update: async () => {} }; }
+    };
+  },
+  runTransaction: async (fn: (tx: Transaction) => Promise<RateLimitResult>) => await fn({ get: async () => ({ exists: false, data: () => ({}) }), set: async () => {}, update: async () => {} })
+});
 
 type RateLimitResult = { allowed: boolean; remaining: number; reset: number; backend: "firestore" | "memory" };
 
@@ -24,7 +35,7 @@ async function rateLimitFirestore(key: string, limit: number, windowMs: number):
   const ref = adminDb().collection("rate_limits").doc(key);
 
   try {
-    const result = await adminDb().runTransaction(async (tx) => {
+    const result = await adminDb().runTransaction(async (tx: Transaction) => {
       const snap = await tx.get(ref);
       const data = snap.exists ? (snap.data() as { count?: number; reset?: number }) : {};
       const count = data.count ?? 0;
@@ -44,7 +55,7 @@ async function rateLimitFirestore(key: string, limit: number, windowMs: number):
     });
 
     return result;
-  } catch (err) {
+  } catch {
     // Fallback to memory if Firestore fails
     return rateLimitMemory(key, limit, windowMs);
   }

@@ -11,15 +11,25 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
+interface AuditLog {
+  id: string;
+  action: string;
+  entity: string;
+  actor: string;
+  createdAt: string;
+  reason: string;
+  founderUserId: string;
+  [key: string]: unknown;
+}
+
 export default function FounderAuditPage() {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { isFounderUser, ready, user } = useFounderAuth();
   const founderUserId = user?.uid;
-  if (!founderUserId) return <div>Missing founderUserId in context</div>;
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!ready || !isFounderUser) return;
+    if (!ready || !isFounderUser || !founderUserId) return;
     async function fetchLogs() {
       setLoading(true);
       // Fetch audit logs from Firestore
@@ -30,14 +40,16 @@ export default function FounderAuditPage() {
         limit(50),
       );
       const snap = await getDocs(q);
-      setLogs(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setLogs(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as AuditLog)));
       setLoading(false);
     }
     fetchLogs();
   }, [ready, isFounderUser, founderUserId]);
 
+  if (!founderUserId) return <div>Missing founderUserId in context</div>;
   if (!ready) return <div>Loading...</div>;
   if (!isFounderUser) return <div>Access denied.</div>;
+
   if (loading) return <div>Loading audit logs...</div>;
 
   return (

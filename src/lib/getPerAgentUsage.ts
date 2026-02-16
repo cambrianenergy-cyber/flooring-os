@@ -1,4 +1,10 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = () => ({
+  collection: () => ({
+    where: () => ({ get: async () => ({ docs: [] }) })
+  })
+});
 
 /**
  * Returns per-agent usage stats for the current month for a workspace.

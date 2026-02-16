@@ -197,11 +197,26 @@ export async function saveOnboardingStepUnified(stepKey: string, stepNumber: num
     let currentStep = stepNumber;
     let completedSteps = [stepNumber];
     let onboardingData = { [stepKey]: fields };
+    // Ensure all steps are present in onboardingData
+    const stepKeys = [
+      "step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8", "step9", "step10", "step11"
+    ];
     if (onboardingSnap.exists()) {
       const prev = onboardingSnap.data();
       currentStep = Math.max(prev.currentStep || 1, stepNumber);
       completedSteps = Array.from(new Set([...(prev.completedSteps || []), stepNumber]));
-      onboardingData = { ...(prev.data || {}), [stepKey]: fields };
+      onboardingData = { ...(prev.data || {}) };
+      // Fill missing steps with empty objects
+      for (const k of stepKeys) {
+        if (!(k in onboardingData)) onboardingData[k] = {};
+      }
+      onboardingData[stepKey] = fields;
+    } else {
+      // Fill all steps for new onboarding
+      for (const k of stepKeys) {
+        onboardingData[k] = {};
+      }
+      onboardingData[stepKey] = fields;
     }
     transaction.set(onboardingRef, {
       status: "in_progress",

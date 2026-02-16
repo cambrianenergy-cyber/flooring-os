@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { getSessionUser } from "./sessionUser";
+
 
 export type Job = {
   id: string;
@@ -34,13 +34,13 @@ export async function fetchJobs(workspaceId: string): Promise<Job[]> {
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Job);
 }
 
-export async function moveJobStatus(
+export async function updateJobStatus(
   jobId: string,
   workspaceId: string,
   newStatus: string,
-  blockedReason?: string,
+  blockedReason: string | undefined,
+  user: { uid: string } | null
 ) {
-  const user = await getSessionUser();
   await updateDoc(doc(db, "jobs", jobId), {
     status: newStatus,
     blockedReason: newStatus === "blocked" ? blockedReason : null,

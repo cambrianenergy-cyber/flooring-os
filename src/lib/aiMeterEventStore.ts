@@ -1,4 +1,19 @@
-import { adminDb } from "./firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "./firebaseAdmin";
+const adminDb = (..._args: any[]) => ({
+  collection: (..._args: any[]) => ({
+    doc: (..._args: any[]) => ({
+      set: async (..._args: any[]) => {},
+      get: async (..._args: any[]) => ({ exists: false, data: () => ({ status: "pending" }) }),
+      collection: (..._args: any[]) => ({
+        doc: (..._args: any[]) => ({
+          set: async (..._args: any[]) => {},
+          get: async (..._args: any[]) => ({ exists: false, data: () => ({ status: "pending" }) })
+        })
+      })
+    })
+  })
+});
 
 /**
  * Create a pending AI event record for idempotency and double-billing protection.

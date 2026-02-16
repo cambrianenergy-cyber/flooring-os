@@ -7,4 +7,5 @@ export type FounderSystemIssue = {
   message?: string;
   occurrences?: number;
   lastSeenAt?: { seconds: number; nanoseconds?: number };
+  [key: string]: unknown;
 };

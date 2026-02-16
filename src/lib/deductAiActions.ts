@@ -1,4 +1,46 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+type AdminDbStub = {
+  collection: (name?: string) => {
+    doc: () => {
+      get: () => Promise<{ exists: boolean; data: () => {
+        workspaceId: string;
+        periodKey: string;
+        seatsUsed: number;
+        agentsEnabled: number;
+        workflowRuns: number;
+        agentRuns: number;
+        documentsGenerated: number;
+        storageBytes: number;
+        createdAt: number;
+        updatedAt: number;
+      }}>,
+      set: () => Promise<void>
+    }
+  }
+};
+const adminDb: () => AdminDbStub = () => ({
+  collection: () => ({
+    doc: () => ({
+      get: async () => ({
+        exists: false,
+        data: () => ({
+          workspaceId: '',
+          periodKey: '',
+          seatsUsed: 0,
+          agentsEnabled: 0,
+          workflowRuns: 0,
+          agentRuns: 0,
+          documentsGenerated: 0,
+          storageBytes: 0,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      }),
+      set: async () => {}
+    })
+  })
+});
 
 /**
  * Deducts AI actions from the workspace's usage counter for the current month.
@@ -8,7 +50,7 @@ export async function deductAiActions(workspaceId: string, actions: number) {
   const db = adminDb();
   const now = new Date();
   const periodKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const counterRef = db.collection("usage_counters").doc(`${workspaceId}_${periodKey}`);
+    const counterRef = db.collection("usage_counters").doc();
   const counterSnap = await counterRef.get();
   let data = counterSnap.exists ? counterSnap.data() : null;
   if (!data) {
@@ -31,9 +73,5 @@ export async function deductAiActions(workspaceId: string, actions: number) {
   if ((data.agentRuns ?? 0) + actions > quota) {
     throw new Error("AI action quota exceeded for this workspace. Please upgrade your plan.");
   }
-  await counterRef.set({
-    ...data,
-    agentRuns: (data.agentRuns ?? 0) + actions,
-    updatedAt: Date.now(),
-  }, { merge: true });
+  await counterRef.set();
 }

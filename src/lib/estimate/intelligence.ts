@@ -1,4 +1,5 @@
-export type EstimateRoom = {
+// Static export stub for estimate/intelligence
+export {};export type EstimateRoom = {
   name: string;
   sqft: number;
   materialRate?: number; // per sqft

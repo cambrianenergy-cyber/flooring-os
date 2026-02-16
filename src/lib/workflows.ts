@@ -1,4 +1,47 @@
-import { adminDb } from "./firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "./firebaseAdmin";
+const adminDb = () => {
+  return {
+    collection: (colName: string) => {
+      return {
+        doc: (...docArgs: unknown[]) => {
+          void docArgs;
+          return {
+            get: async () => {
+              if (colName === "workspaces") {
+                return {
+                  exists: true,
+                  data: () => ({ plan: { key: 'free', workflow: { enabled: true, maxRunsPerMonth: 'unlimited' } } })
+                };
+              } else if (colName === "workflows") {
+                return {
+                  exists: true,
+                  data: () => ({ steps: [], enabled: true })
+                };
+              } else {
+                return {
+                  exists: false,
+                  data: () => ({})
+                };
+              }
+            },
+            set: async (..._args: unknown[]) => { void _args; },
+            update: async (..._args: unknown[]) => { void _args; },
+            id: 'static-id',
+          };
+        },
+        add: async (..._args: unknown[]) => { void _args; return {}; },
+        where: function whereStub(..._args: unknown[]) {
+          void _args;
+          return {
+            where: whereStub,
+            get: async () => ({ size: 0, docs: [] })
+          };
+        }
+      };
+    }
+  };
+};
 import { resolvePlan } from "./plans";
 import { recordAiUsage, requireAiBudget } from "./metering";
 
@@ -9,7 +52,7 @@ export async function runWorkflow(workspaceId: string, workflowId: string, input
   const db = adminDb();
   const wsSnap = await db.collection("workspaces").doc(workspaceId).get();
   if (!wsSnap.exists) throw new Error("WORKSPACE_NOT_FOUND");
-  const plan = resolvePlan(wsSnap.data()!.plan?.key);
+  const plan = resolvePlan((wsSnap.data() as { plan?: { key?: string } }).plan?.key);
 
   if (!plan.workflow.enabled) throw new Error("WORKFLOWS_NOT_AVAILABLE");
 

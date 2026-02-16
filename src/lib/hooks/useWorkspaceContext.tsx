@@ -61,7 +61,28 @@ export function useWorkspaceContext(): WorkspaceContext | null {
         },
       );
 
-      return () => unsubBilling();
+      const unsubEntitlements = onSnapshot(
+        doc(db, "workspaces", workspaceId, "entitlements", "main"),
+        (entSnap) => {
+          // If entitlements doc exists, merge with resolved entitlements
+          const entData = entSnap.exists() ? entSnap.data() : {};
+          setCtx((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              entitlements: {
+                ...prev.entitlements,
+                ...entData,
+              },
+            };
+          });
+        }
+      );
+
+      return () => {
+        unsubBilling();
+        unsubEntitlements();
+      };
     });
 
     return () => unsubUser();

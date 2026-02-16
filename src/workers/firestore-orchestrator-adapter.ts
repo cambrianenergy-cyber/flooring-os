@@ -1,5 +1,6 @@
 // Firestore implementation of the OrchestratorAdapter contract
-import { getFirestore } from "firebase-admin/firestore";
+// Static export stub: server-only code removed
+const getFirestore = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 import type { OrchestratorAdapter } from "./orchestrator";
 import type {
   AgentInstance,

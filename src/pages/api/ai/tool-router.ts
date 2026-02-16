@@ -4,18 +4,6 @@ import type { Session } from "next-auth";
 
 import { authOptions } from "../auth/[...nextauth]";
 import { AGENTS, type AgentKey } from "@/lib/agents/registry";
-import { estimatorAgent } from "@/app/api/ai/agents/estimator";
-import { followUpAgent } from "@/app/api/ai/agents/followUp";
-import { materialsAgent } from "@/app/api/ai/agents/materials";
-import { jobSummaryAgent } from "@/app/api/ai/agents/jobSummary";
-import { kpiAgent } from "@/app/api/ai/agents/kpi";
-import { schedulingAgent } from "@/app/api/ai/agents/scheduling";
-import { calendarAgent } from "@/app/api/ai/agents/calendar";
-import { trainingTipsAgent } from "@/app/api/ai/agents/trainingTips";
-import { remindersAgent } from "@/app/api/ai/agents/reminders";
-import { leadScoringAgent } from "@/app/api/ai/agents/leadScoring";
-import { documentGenAgent } from "@/app/api/ai/agents/documentGen";
-import { workflowAgent } from "@/app/api/ai/agents/workflow";
 
 // Scaffold mailbox agent
 function mailboxAgent(input: any) {
@@ -90,18 +78,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const input = req.body?.input ?? req.body?.message ?? "";
 
     const agentFunctions: Partial<Record<AgentKey, Function>> = {
-      estimator: estimatorAgent,
       support: async (input: any) => {
         const prompt = typeof input === "string" ? input : input?.message ?? "How can I help you?";
         const result = await openaiCompletion(prompt);
         return { text: result };
       },
-      scheduler: schedulingAgent,
       inbox: mailboxAgent, // Now uses mailboxAgent scaffold
-      closer: trainingTipsAgent,
-      ops: remindersAgent,
-      leadScoring: leadScoringAgent, // Now wired up
-      workflow: workflowAgent, // Now real logic
       // Only include AgentKey values defined in AGENTS
       // orchestrator is not an AgentKey, but can be called separately if needed
     };

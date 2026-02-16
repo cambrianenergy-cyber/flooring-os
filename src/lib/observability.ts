@@ -1,6 +1,8 @@
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = {};
 import { AgentLog, WorkflowFailure } from "@/lib/types";
 
 // Centralized helpers to record failures and audit events.

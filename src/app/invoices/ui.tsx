@@ -1,6 +1,5 @@
 "use client";
 
-import { setInvoiceStatus } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -18,6 +17,13 @@ function daysOverdue(dueDate?: FirestoreDate) {
       : dueDate;
   const diff = Date.now() - due.getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+// Server actions removed for static export. UI actions are now stubs.
+
+// Stub function for setInvoiceStatus
+export async function setInvoiceStatusStub() {
+  alert("Set invoice status is not available in static export.");
 }
 
 export type Invoice = {
@@ -60,8 +66,8 @@ export default function InvoicesClient({ invoices }: { invoices: Invoice[] }) {
   ) {
     setBusyId(id);
     try {
-      await setInvoiceStatus({ invoiceId: id, status });
-      router.refresh();
+      await setInvoiceStatusStub();
+      // router.refresh();
     } finally {
       setBusyId(null);
     }

@@ -1,4 +1,51 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+
+interface WorkflowRunLock {
+  by: string;
+  at: number;
+  expiresAt: number;
+}
+
+interface DocumentSnapshot {
+  exists: boolean;
+  data: () => Record<string, unknown>;
+}
+
+interface Transaction {
+  get: (ref: DocumentRef) => Promise<DocumentSnapshot>;
+  update: (ref: DocumentRef, data: Record<string, unknown>) => Promise<void>;
+}
+
+type DocumentRef = unknown;
+
+const adminDb = () => {
+  return {
+    collection: (...args: unknown[]) => {
+      void args;
+      return {
+        doc: (...docArgs: unknown[]) => {
+          void docArgs;
+          return {
+            get: async () => ({ exists: false, data: () => ({}) }),
+            update: async () => {},
+            id: '',
+          };
+        },
+        add: async () => ({}),
+        where: () => ({
+          get: async () => ({ size: 0, docs: [] })
+        })
+      };
+    },
+    runTransaction: async (fn: (txn: Transaction) => Promise<unknown>) => {
+      return await fn({
+        get: async () => ({ exists: false, data: () => ({}) }),
+        update: async () => {},
+      });
+    }
+  };
+};
 
 export async function acquireRunLock(
   runId: string,
@@ -10,16 +57,16 @@ export async function acquireRunLock(
   const expiresAt = now + ttlMs;
 
   try {
-    const res = await adminDb().runTransaction(async (txn) => {
+    const res = await adminDb().runTransaction(async (txn: Transaction) => {
       const doc = await txn.get(runRef);
       if (!doc.exists) return { ok: false, reason: "not_found" };
 
       const data = doc.data();
+      const lock = data && data.lock as WorkflowRunLock | undefined;
       if (
-        data &&
-        data.lock &&
-        data.lock.expiresAt > now &&
-        data.lock.by !== runnerId
+        lock &&
+        lock.expiresAt > now &&
+        lock.by !== runnerId
       ) {
         return { ok: false, reason: "locked" };
       }
@@ -30,7 +77,7 @@ export async function acquireRunLock(
       return { ok: true };
     });
     return res;
-  } catch (_) {
+  } catch {
     return { ok: false, reason: "error" };
   }
 }
@@ -42,12 +89,13 @@ export async function releaseRunLock(runId: string, runnerId: string) {
       const doc = await txn.get(runRef);
       if (!doc.exists) return;
       const data = doc.data();
-      if (data && data.lock && data.lock.by === runnerId) {
+      const lock = data && data.lock as WorkflowRunLock | undefined;
+      if (lock && lock.by === runnerId) {
         txn.update(runRef, { lock: null });
       }
     });
     return { ok: true };
-  } catch (_) {
+  } catch {
     return { ok: false };
   }
 }

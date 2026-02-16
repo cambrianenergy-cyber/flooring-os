@@ -11,7 +11,22 @@ export interface AIPolicy {
   updatedAt: Timestamp;
 }
 
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = (..._args: any[]) => ({
+  collection: (..._args: any[]) => ({
+    doc: (..._args: any[]) => ({
+      set: async (..._args: any[]) => {},
+      get: async (..._args: any[]) => ({ exists: false, data: () => ({}) }),
+      collection: (..._args: any[]) => ({
+        doc: (..._args: any[]) => ({
+          set: async (..._args: any[]) => {},
+          get: async (..._args: any[]) => ({ exists: false, data: () => ({}) })
+        })
+      })
+    })
+  })
+});
 import { resolvePlan } from "@/lib/plans";
 
 /**

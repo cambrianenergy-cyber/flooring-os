@@ -1,7 +1,6 @@
 "use client";
 // ...rest of your code..."use client";
 
-import { moveJob } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -18,6 +17,13 @@ export type Job = {
   propertyAddress?: string;
   customerName?: string;
 };
+
+// Server actions removed for static export. UI actions are now stubs.
+
+// Stub function for moveJob
+export async function moveJobStub() {
+  alert("Move job action is not available in static export.");
+ }
 
 const COLS: { key: JobStatus; label: string }[] = [
   { key: "scheduled", label: "Scheduled" },
@@ -54,8 +60,8 @@ export default function JobsKanban({ jobs }: { jobs: Job[] }) {
     }
     setBusyId(jobId);
     try {
-      await moveJob({ jobId, status, blockedReason });
-      router.refresh();
+      await moveJobStub();
+      // router.refresh();
     } finally {
       setBusyId(null);
     }

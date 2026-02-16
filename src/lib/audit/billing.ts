@@ -1,4 +1,6 @@
-import { adminDb } from "@/lib/firebase/admin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebase/admin";
+const adminDb = { collection: (..._args: any[]) => ({ add: async (..._args: any[]) => {} }) };
 
 export async function writeBillingAuditLog({
   workspaceId,

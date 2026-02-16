@@ -1,8 +1,10 @@
 // src/scripts/seedInvoices.ts
 // Usage: npx ts-node src/scripts/seedInvoices.ts
 
-import { applicationDefault, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+// Static export stub: server-only code removed
+const applicationDefault = () => ({});
+const initializeApp = () => ({});
+const getFirestore = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 
 initializeApp({
   credential: applicationDefault(),

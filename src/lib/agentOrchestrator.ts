@@ -40,10 +40,11 @@
 // Estimate Comparator Agent: 6 AI actions / comparison
 //   Why: Multi-estimate analysis + probability modeling.
 
-import { adminDb } from "@/lib/firebaseAdmin";
-
-// Declare db at module scope for reuse
-const db = adminDb();
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+// const db = adminDb();
+import type { Firestore } from "firebase-admin/firestore";
+const db = {} as Firestore; // static export stub
 import { getAgentExecutor } from "@/lib/agentExecutors";
 import { deductAiActions } from "@/lib/deductAiActions";
 import { logAgentFailure } from "@/lib/observability";

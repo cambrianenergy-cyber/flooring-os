@@ -1,5 +1,7 @@
 import { FEATURE_MATRIX, type PlanTier } from "@/lib/plans/featureMatrixV2";
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 
 type WorkspacePlanDoc = {
   tier?: PlanTier;

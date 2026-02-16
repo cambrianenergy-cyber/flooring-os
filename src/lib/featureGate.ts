@@ -1,4 +1,6 @@
-import { adminDb } from "./firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "./firebaseAdmin";
+const adminDb = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 import { resolvePlan } from "./plans";
 
 export async function getWorkspacePlan(workspaceId: string) {

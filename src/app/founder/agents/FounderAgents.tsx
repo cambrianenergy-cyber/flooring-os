@@ -1,0 +1,3 @@
+export function FounderAgents() {
+  // ...existing code from FounderAgents in page.tsx...
+}

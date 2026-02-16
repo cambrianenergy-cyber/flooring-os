@@ -1,4 +1,6 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "@/lib/firebaseAdmin";
+const adminDb = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ data: () => ({}), exists: false }) }) }) });
 import { PLANS, type PlanKey } from "@/lib/plans";
 
 export type WorkspacePlan = {

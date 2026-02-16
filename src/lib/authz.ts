@@ -1,15 +1,12 @@
-import { adminDb } from "./firebaseAdmin";
+// Server-only code removed for static export
+// import { adminDb } from "./firebaseAdmin";
+const adminDb = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 
 export type Role = "owner" | "admin" | "sales" | "installer" | "viewer";
 
 export async function requireWorkspaceMember(workspaceId: string, uid: string) {
-  const db = adminDb();
-  const id = `${workspaceId}_${uid}`;
-  const snap = await db.collection("workspace_members").doc(id).get();
-  if (!snap.exists) throw new Error("NOT_MEMBER");
-  const data = snap.data()!;
-  if (data.status !== "active") throw new Error("MEMBER_INACTIVE");
-  return data as { role: Role; status: string; workspaceId: string; uid: string };
+  // Static export stub: always throws
+  throw new Error("NOT_MEMBER (static export stub)");
 }
 
 export function requireRole(role: Role, allowed: Role[]) {

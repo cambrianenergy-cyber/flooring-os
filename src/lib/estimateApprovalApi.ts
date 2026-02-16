@@ -6,14 +6,13 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { getSessionUser } from "./sessionUser";
 
 export async function approveEstimate(
   estimateId: string,
   workspaceId: string,
   reason: string,
+  user: { uid: string }
 ) {
-  const user = await getSessionUser();
   if (!user) throw new Error("User not authenticated");
   // Update estimate status
   await updateDoc(doc(db, "estimates", estimateId), {
@@ -40,8 +39,8 @@ export async function rejectEstimate(
   estimateId: string,
   workspaceId: string,
   reason: string,
+  user: { uid: string }
 ) {
-  const user = await getSessionUser();
   if (!user) throw new Error("User not authenticated");
   await updateDoc(doc(db, "estimates", estimateId), {
     status: "rejected",

@@ -1,15 +1,14 @@
 import { isFounder } from "@/lib/auth-utils";
-import { getSessionUser } from "@/lib/sessionUser";
 import { redirect } from "next/navigation";
 
-export async function requireWorkspace() {
-  const user = await getSessionUser();
+// Accept user/session info as a parameter
+export function requireWorkspace(user: { workspaceId?: string }) {
   if (!user || !user.workspaceId) redirect("/login");
   return user;
 }
 
-export async function requireFounder() {
-  const user = await requireWorkspace();
+export function requireFounder(user: { role?: string, workspaceId?: string }) {
+  if (!user || !user.workspaceId) redirect("/login");
   if (!isFounder(user.role)) redirect("/dashboard");
   return user;
 }

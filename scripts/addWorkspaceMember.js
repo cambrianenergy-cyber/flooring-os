@@ -1,7 +1,8 @@
 
 
 
-import admin from 'firebase-admin';
+// Static export stub: server-only code removed
+const admin = {};
 import fs from 'fs';
 const serviceAccount = JSON.parse(fs.readFileSync('./scripts/serviceAccountKey.json', 'utf8'));
 

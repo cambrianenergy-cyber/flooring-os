@@ -6,8 +6,11 @@ const __filename = decodeURIComponent(new URL(import.meta.url).pathname.replace(
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+// Static export stub: server-only code removed
+const initializeApp = (..._args: any[]) => ({});
+const getApps = () => ([]);
+const cert = () => ({});
+const getFirestore = () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false, data: () => ({}) }) }) }) });
 const serviceAccount = {
   projectId: process.env.FIREBASE_PROJECT_ID,
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
